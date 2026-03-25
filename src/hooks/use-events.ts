@@ -5,23 +5,22 @@ import type { Event } from "@/types";
 import type { EventFormData } from "@/lib/validations/event";
 
 export function useEvents() {
-  const org = useOrgStore((s) => s.org);
+  const setOrg = useOrgStore((s) => s.setOrg);
 
   return useQuery({
-    queryKey: ["events", org?.id],
+    queryKey: ["events"],
     queryFn: async () => {
-      if (!org) return [];
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("organization_id", org.id)
-        .order("created_at", { ascending: false });
+      const res = await fetch("/api/events");
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
 
-      if (error) throw error;
-      return data as Event[];
+      // Also set org context from the response
+      if (result.data.organization_id) {
+        setOrg({ id: result.data.organization_id } as never);
+      }
+
+      return result.data.events as Event[];
     },
-    enabled: !!org,
   });
 }
 

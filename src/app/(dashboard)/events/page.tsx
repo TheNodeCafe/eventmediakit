@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEvents } from "@/hooks/use-events";
-import { useOrg } from "@/hooks/use-org";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -27,7 +26,6 @@ const statusVariants: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export default function EventsPage() {
-  useOrg();
   const { data: events, isLoading } = useEvents();
 
   return (

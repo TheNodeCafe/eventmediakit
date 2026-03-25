@@ -131,17 +131,22 @@ export function PropertiesPanel({
 
   if (!props) {
     return (
-      <div className="w-64 shrink-0 border-l bg-background p-4">
-        <p className="text-sm text-muted-foreground">
-          Sélectionnez un élément pour modifier ses propriétés
+      <div className="flex-1 overflow-y-auto p-3">
+        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Propriétés
+        </h3>
+        <p className="py-8 text-center text-xs text-muted-foreground">
+          Sélectionnez un élément
         </p>
       </div>
     );
   }
 
   return (
-    <div className="w-64 shrink-0 overflow-y-auto border-l bg-background p-4">
-      <h3 className="mb-4 text-sm font-semibold">Propriétés</h3>
+    <div className="flex-1 overflow-y-auto p-3">
+      <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        Propriétés
+      </h3>
 
       <div className="space-y-4">
         {/* Fill color */}

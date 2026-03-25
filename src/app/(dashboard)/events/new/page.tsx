@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventSchema, type EventFormData } from "@/lib/validations/event";
 import { useCreateEvent } from "@/hooks/use-events";
-import { useOrg } from "@/hooks/use-org";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +20,6 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function NewEventPage() {
-  useOrg();
   const router = useRouter();
   const createEvent = useCreateEvent();
 
