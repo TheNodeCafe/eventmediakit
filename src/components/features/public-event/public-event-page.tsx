@@ -80,20 +80,19 @@ export function PublicEventPage({
   const org = event.organization;
   const primaryColor = (org.primary_color || event.branding?.primary_color) as string | undefined;
 
-  // Filter templates by active category
-  const categoryTemplates = templates.filter((t) =>
-    t.template_categories.some((tc) => tc.category_id === activeCategory)
-  );
+  // Filter templates: if categories exist and a category is selected, filter.
+  // Otherwise show all templates.
+  const hasCategories = categories.length > 0;
+  const categoryTemplates = hasCategories && activeCategory
+    ? templates.filter((t) =>
+        t.template_categories.some((tc) => tc.category_id === activeCategory)
+      )
+    : templates;
 
-  // Group templates by format for the format selector
+  // Active template for preview
   const activeTemplate = categoryTemplates.find(
     (t) => t.id === activeTemplateId
   ) ?? categoryTemplates[0] ?? null;
-
-  // Set active template when category changes
-  if (activeTemplate && !activeTemplateId && categoryTemplates.length > 0) {
-    // Will be set on first render
-  }
 
   function handleCategoryChange(catId: string) {
     setActiveCategory(catId);
@@ -493,7 +492,9 @@ export function PublicEventPage({
             ) : (
               <div className="flex h-64 items-center justify-center rounded-lg border bg-muted/50">
                 <p className="text-sm text-muted-foreground">
-                  Sélectionnez une catégorie pour voir les visuels
+                  {templates.length === 0
+                    ? "Aucun template publié pour cet événement"
+                    : "Remplissez les champs pour voir l'aperçu"}
                 </p>
               </div>
             )}
