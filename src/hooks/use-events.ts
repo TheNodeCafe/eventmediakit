@@ -4,6 +4,8 @@ import { useOrgStore } from "@/store/org-store";
 import type { Event } from "@/types";
 import type { EventFormData } from "@/lib/validations/event";
 
+// Note: createClient is still used by useUpdateEvent and useDeleteEvent
+
 export function useEvents() {
   const setOrg = useOrgStore((s) => s.setOrg);
 
@@ -28,15 +30,10 @@ export function useEvent(eventId: string) {
   return useQuery({
     queryKey: ["event", eventId],
     queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", eventId)
-        .single();
-
-      if (error) throw error;
-      return data as Event;
+      const res = await fetch(`/api/events/${eventId}`);
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
+      return result.data as Event;
     },
   });
 }

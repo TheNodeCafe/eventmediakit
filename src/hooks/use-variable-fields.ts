@@ -1,20 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
 import type { VariableFieldDefinition, FieldType } from "@/types";
 
 export function useVariableFields(eventId: string) {
   return useQuery({
     queryKey: ["variable-fields", eventId],
     queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("variable_field_definitions")
-        .select("*")
-        .eq("event_id", eventId)
-        .order("sort_order");
-
-      if (error) throw error;
-      return data as VariableFieldDefinition[];
+      const res = await fetch(`/api/events/${eventId}/fields`);
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
+      return result.data as VariableFieldDefinition[];
     },
   });
 }
@@ -31,20 +25,17 @@ export function useCreateVariableField(eventId: string) {
 
   return useMutation({
     mutationFn: async (input: CreateFieldInput) => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("variable_field_definitions")
-        .insert({ event_id: eventId, ...input })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as VariableFieldDefinition;
+      const res = await fetch(`/api/events/${eventId}/fields`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
+      return result.data as VariableFieldDefinition;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["variable-fields", eventId],
-      });
+      queryClient.invalidateQueries({ queryKey: ["variable-fields", eventId] });
     },
   });
 }
@@ -54,18 +45,16 @@ export function useDeleteVariableField(eventId: string) {
 
   return useMutation({
     mutationFn: async (fieldId: string) => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("variable_field_definitions")
-        .delete()
-        .eq("id", fieldId);
-
-      if (error) throw error;
+      const res = await fetch(`/api/events/${eventId}/fields`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ field_id: fieldId }),
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["variable-fields", eventId],
-      });
+      queryClient.invalidateQueries({ queryKey: ["variable-fields", eventId] });
     },
   });
 }

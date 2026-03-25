@@ -52,22 +52,14 @@ export function useCreateTemplate(eventId: string) {
 
   return useMutation({
     mutationFn: async (input: SaveTemplateInput) => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("templates")
-        .insert({
-          event_id: eventId,
-          name: input.name,
-          format: input.format,
-          width: input.width,
-          height: input.height,
-          canvas_json: input.canvas_json,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as Template;
+      const res = await fetch("/api/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...input, event_id: eventId }),
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
+      return result.data as Template;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["templates", eventId] });
@@ -80,22 +72,14 @@ export function useUpdateTemplate(templateId: string, eventId: string) {
 
   return useMutation({
     mutationFn: async (input: SaveTemplateInput) => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("templates")
-        .update({
-          name: input.name,
-          format: input.format,
-          width: input.width,
-          height: input.height,
-          canvas_json: input.canvas_json,
-        })
-        .eq("id", templateId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as Template;
+      const res = await fetch("/api/templates", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...input, template_id: templateId }),
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
+      return result.data as Template;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["templates", eventId] });
