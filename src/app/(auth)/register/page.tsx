@@ -29,55 +29,36 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
 
-    const supabase = createClient();
+    try {
+      // Call API route that handles signup + org creation with admin privileges
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          org_name: orgName,
+        }),
+      });
 
-    // 1. Create auth user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { org_name: orgName },
-      },
-    });
+      const result = await res.json();
 
-    if (authError) {
-      setError(authError.message);
-      setLoading(false);
-      return;
-    }
+      if (!result.success) {
+        setError(result.error || "Erreur lors de la création du compte");
+        setLoading(false);
+        return;
+      }
 
-    if (!authData.user) {
+      // Sign in the user client-side after successful registration
+      const supabase = createClient();
+      await supabase.auth.signInWithPassword({ email, password });
+
+      router.push("/events");
+      router.refresh();
+    } catch {
       setError("Erreur lors de la création du compte");
       setLoading(false);
-      return;
     }
-
-    // 2. Create organization + membership
-    const slug = orgName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
-
-    const { data: org, error: orgError } = await supabase
-      .from("organizations")
-      .insert({ name: orgName, slug })
-      .select()
-      .single();
-
-    if (orgError) {
-      setError("Erreur lors de la création de l'organisation");
-      setLoading(false);
-      return;
-    }
-
-    await supabase.from("organization_members").insert({
-      organization_id: org.id,
-      user_id: authData.user.id,
-      role: "owner",
-    });
-
-    router.push("/events");
-    router.refresh();
   }
 
   return (
