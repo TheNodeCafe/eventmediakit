@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 interface TemplatePreviewProps {
   canvasJson: Record<string, unknown>;
@@ -16,18 +16,42 @@ export function TemplatePreview({
   fieldValues,
 }: TemplatePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fabricRef = useRef<unknown>(null);
-  const maxPreviewWidth = 500;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fabricRef = useRef<any>(null);
+  const initDone = useRef(false);
+  const maxPreviewWidth = 560;
   const scale = Math.min(maxPreviewWidth / width, 1);
 
+  // Store field values in ref so we can access latest in init
+  const fieldValuesRef = useRef(fieldValues);
+  fieldValuesRef.current = fieldValues;
+
+  const injectValues = useCallback((canvas: { getObjects: () => unknown[]; renderAll: () => void }, values: Record<string, string>) => {
+    canvas.getObjects().forEach((obj) => {
+      const typed = obj as Record<string, unknown>;
+      const variableField = typed.variableField as string | undefined;
+      if (variableField && typed.text !== undefined) {
+        const newText = values[variableField] || `{{${variableField}}}`;
+        // Use set method if available for proper Fabric.js reactivity
+        const fabricObj = obj as { set?: (key: string, value: string) => void };
+        if (typeof fabricObj.set === "function") {
+          fabricObj.set("text", newText);
+        } else {
+          typed.text = newText;
+        }
+      }
+    });
+    canvas.renderAll();
+  }, []);
+
+  // Initialize canvas once
   useEffect(() => {
     let disposed = false;
 
     async function init() {
-      if (!canvasRef.current) return;
+      if (!canvasRef.current || initDone.current) return;
 
       const { StaticCanvas } = await import("fabric");
-
       if (disposed) return;
 
       const canvas = new StaticCanvas(canvasRef.current, {
@@ -40,19 +64,14 @@ export function TemplatePreview({
 
       if (canvasJson && Object.keys(canvasJson).length > 0) {
         await canvas.loadFromJSON(canvasJson);
+        canvas.setZoom(scale);
       }
 
-      // Inject field values into variable zones
-      canvas.getObjects().forEach((obj) => {
-        const typed = obj as unknown as Record<string, unknown>;
-        const variableField = typed.variableField as string | undefined;
-        if (variableField && fieldValues[variableField] && typed.text !== undefined) {
-          typed.text = fieldValues[variableField];
-        }
-      });
+      // Inject initial values
+      injectValues(canvas, fieldValuesRef.current);
 
-      canvas.renderAll();
       fabricRef.current = canvas;
+      initDone.current = true;
     }
 
     init();
@@ -60,41 +79,23 @@ export function TemplatePreview({
     return () => {
       disposed = true;
       if (fabricRef.current) {
-        (fabricRef.current as { dispose: () => void }).dispose();
+        fabricRef.current.dispose();
         fabricRef.current = null;
+        initDone.current = false;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [canvasJson, width, height, scale]);
 
-  // Update field values when they change
+  // Re-inject values on every fieldValues change
   useEffect(() => {
-    const canvas = fabricRef.current as {
-      getObjects: () => unknown[];
-      renderAll: () => void;
-    } | null;
-    if (!canvas) return;
-
-    canvas.getObjects().forEach((obj) => {
-      const typed = obj as Record<string, unknown>;
-      const variableField = typed.variableField as string | undefined;
-      if (variableField && typed.text !== undefined) {
-        typed.text = fieldValues[variableField] || `{{${variableField}}}`;
-      }
-    });
-
-    canvas.renderAll();
-  }, [fieldValues]);
+    if (!fabricRef.current) return;
+    injectValues(fabricRef.current, fieldValues);
+  }, [fieldValues, injectValues]);
 
   return (
     <div className="flex justify-center overflow-hidden rounded-lg border bg-white">
-      <canvas
-        ref={canvasRef}
-        style={{
-          maxWidth: "100%",
-          height: "auto",
-        }}
-      />
+      <canvas ref={canvasRef} />
     </div>
   );
 }

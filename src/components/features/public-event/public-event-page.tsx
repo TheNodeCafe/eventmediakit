@@ -80,14 +80,20 @@ export function PublicEventPage({
   const org = event.organization;
   const primaryColor = (org.primary_color || event.branding?.primary_color) as string | undefined;
 
-  // Filter templates: if categories exist and a category is selected, filter.
-  // Otherwise show all templates.
+  // Filter templates by category. Templates with no category association are always shown.
   const hasCategories = categories.length > 0;
-  const categoryTemplates = hasCategories && activeCategory
-    ? templates.filter((t) =>
-        t.template_categories.some((tc) => tc.category_id === activeCategory)
-      )
-    : templates;
+  const someTemplatesHaveCategories = templates.some(
+    (t) => t.template_categories.length > 0
+  );
+
+  const categoryTemplates =
+    hasCategories && activeCategory && someTemplatesHaveCategories
+      ? templates.filter(
+          (t) =>
+            t.template_categories.length === 0 ||
+            t.template_categories.some((tc) => tc.category_id === activeCategory)
+        )
+      : templates;
 
   // Active template for preview
   const activeTemplate = categoryTemplates.find(
@@ -299,7 +305,7 @@ export function PublicEventPage({
       )}
 
       {/* Category tabs */}
-      {categories.length > 1 && (
+      {hasCategories && someTemplatesHaveCategories && (
         <div className="border-b">
           <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-6 py-2">
             {categories.map((cat) => (
