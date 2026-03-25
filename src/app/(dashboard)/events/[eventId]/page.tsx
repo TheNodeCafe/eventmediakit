@@ -1,9 +1,10 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { useEvent } from "@/hooks/use-events";
-import { buttonVariants } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,7 +22,6 @@ import {
   ExternalLink,
   Copy,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const modules = [
   {
@@ -95,6 +95,7 @@ export default function EventDetailPage({
                   ? "Actif"
                   : "Archivé"}
             </Badge>
+            <StatusToggle eventId={eventId} currentStatus={event.status} />
           </div>
           {event.start_date && (
             <p className="text-muted-foreground">
@@ -161,5 +162,34 @@ export default function EventDetailPage({
         ))}
       </div>
     </div>
+  );
+}
+
+function StatusToggle({
+  eventId,
+  currentStatus,
+}: {
+  eventId: string;
+  currentStatus: string;
+}) {
+  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+
+  async function toggle() {
+    setLoading(true);
+    const newStatus = currentStatus === "active" ? "draft" : "active";
+    await fetch(`/api/events/${eventId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+    setLoading(false);
+  }
+
+  return (
+    <Button variant="outline" size="sm" onClick={toggle} disabled={loading}>
+      {currentStatus === "active" ? "Désactiver" : "Activer"}
+    </Button>
   );
 }
