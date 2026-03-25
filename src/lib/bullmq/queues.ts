@@ -3,7 +3,12 @@ import { getRedisConnection } from "./connection";
 
 let _renderQueue: Queue | null = null;
 
-export function getRenderQueue(): Queue {
+export function isRedisConfigured(): boolean {
+  return !!(process.env.REDIS_URL || process.env.REDIS_HOST);
+}
+
+export function getRenderQueue(): Queue | null {
+  if (!isRedisConfigured()) return null;
   if (!_renderQueue) {
     _renderQueue = new Queue("render", {
       connection: getRedisConnection(),

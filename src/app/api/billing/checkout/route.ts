@@ -45,6 +45,12 @@ export async function POST(request: Request) {
 
     const org = membership.organization as unknown as Record<string, unknown>;
     const stripe = getStripe();
+    if (!stripe) {
+      return NextResponse.json(
+        { success: false, error: "Stripe not configured" },
+        { status: 503 }
+      );
+    }
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
     // Create or retrieve Stripe customer

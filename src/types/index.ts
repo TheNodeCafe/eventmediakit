@@ -4,7 +4,7 @@ export type Result<T> =
 
 export type Plan = "starter" | "growth" | "pro" | "enterprise";
 
-export type ParticipantStatus = "invited" | "link_opened" | "completed";
+export type ParticipantStatus = "active" | "completed";
 
 export type TemplateFormat =
   | "square_1x1"
@@ -51,6 +51,7 @@ export interface Event {
     secondary_color?: string;
     cover_url?: string;
   };
+  access_password: string | null;
   status: "draft" | "active" | "archived";
   created_at: string;
   updated_at: string;
@@ -95,20 +96,16 @@ export interface Participant {
   event_id: string;
   category_id: string;
   email: string;
-  magic_token: string;
-  token_expires_at: string | null;
   status: ParticipantStatus;
   field_values: Record<string, string>;
   gdpr_consent_at: string | null;
-  invited_at: string | null;
-  first_accessed_at: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface Generation {
   id: string;
-  participant_id: string;
+  participant_id: string | null;
   template_id: string;
   organization_id: string;
   file_url: string | null;

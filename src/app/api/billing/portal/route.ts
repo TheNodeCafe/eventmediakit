@@ -35,6 +35,12 @@ export async function POST() {
     }
 
     const stripe = getStripe();
+    if (!stripe) {
+      return NextResponse.json(
+        { success: false, error: "Stripe not configured" },
+        { status: 503 }
+      );
+    }
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
     const session = await stripe.billingPortal.sessions.create({

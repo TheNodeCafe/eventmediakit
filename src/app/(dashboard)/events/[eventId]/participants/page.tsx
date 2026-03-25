@@ -35,7 +35,6 @@ import {
   Plus,
   Upload,
   Users,
-  Send,
   Trash2,
 } from "lucide-react";
 import {
@@ -46,14 +45,12 @@ import {
 import { useCategories } from "@/hooks/use-categories";
 
 const statusLabels: Record<string, string> = {
-  invited: "Invité",
-  link_opened: "Lien ouvert",
+  active: "Actif",
   completed: "Complété",
 };
 
 const statusVariants: Record<string, "default" | "secondary" | "outline"> = {
-  invited: "outline",
-  link_opened: "secondary",
+  active: "secondary",
   completed: "default",
 };
 
@@ -66,30 +63,6 @@ export default function ParticipantsPage({
   const { data: participants, isLoading } = useParticipants(eventId);
   const { data: categories } = useCategories(eventId);
   const deleteParticipant = useDeleteParticipant(eventId);
-  const [inviting, setInviting] = useState<string[]>([]);
-
-  async function handleInvite(participantIds: string[]) {
-    setInviting(participantIds);
-    try {
-      await fetch(`/api/participants/invite`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_id: eventId, participant_ids: participantIds }),
-      });
-    } finally {
-      setInviting([]);
-    }
-  }
-
-  async function handleInviteAll() {
-    const uninvited = participants
-      ?.filter((p) => !p.invited_at)
-      .map((p) => p.id);
-    if (uninvited?.length) {
-      await handleInvite(uninvited);
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -108,17 +81,6 @@ export default function ParticipantsPage({
           </div>
         </div>
         <div className="flex gap-2">
-          {(participants?.length ?? 0) > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleInviteAll}
-              disabled={inviting.length > 0}
-            >
-              <Send className="mr-2 h-4 w-4" />
-              Envoyer tous les liens
-            </Button>
-          )}
           <Link
             href={`/events/${eventId}/participants/import`}
             className={buttonVariants({ variant: "outline", size: "sm" })}
@@ -161,8 +123,7 @@ export default function ParticipantsPage({
                 <TableHead>Email</TableHead>
                 <TableHead>Catégorie</TableHead>
                 <TableHead>Statut</TableHead>
-                <TableHead>Invité le</TableHead>
-                <TableHead className="w-24">Actions</TableHead>
+                <TableHead className="w-16">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -175,35 +136,19 @@ export default function ParticipantsPage({
                       {statusLabels[p.status]}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {p.invited_at
-                      ? new Date(p.invited_at).toLocaleDateString("fr-FR")
-                      : "—"}
-                  </TableCell>
                   <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => handleInvite([p.id])}
-                        disabled={inviting.includes(p.id)}
-                        title="Envoyer le lien"
-                      >
-                        <Send className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => {
-                          if (confirm("Supprimer ce participant ?")) {
-                            deleteParticipant.mutate(p.id);
-                          }
-                        }}
-                        title="Supprimer"
-                      >
-                        <Trash2 className="h-3 w-3 text-destructive" />
-                      </Button>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => {
+                        if (confirm("Supprimer ce participant ?")) {
+                          deleteParticipant.mutate(p.id);
+                        }
+                      }}
+                      title="Supprimer"
+                    >
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

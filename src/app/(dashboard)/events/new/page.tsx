@@ -100,6 +100,21 @@ export default function NewEventPage() {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="access_password">
+                Mot de passe d&apos;accès (optionnel)
+              </Label>
+              <Input
+                id="access_password"
+                type="text"
+                placeholder="Laisser vide pour un accès public"
+                {...register("access_password")}
+              />
+              <p className="text-xs text-muted-foreground">
+                Si défini, les visiteurs devront saisir ce mot de passe pour accéder au media kit
+              </p>
+            </div>
+
             <div className="flex justify-end gap-3 pt-4">
               <Link href="/events" className={buttonVariants({ variant: "outline" })}>Annuler</Link>
               <Button type="submit" disabled={createEvent.isPending}>

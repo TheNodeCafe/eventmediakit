@@ -18,7 +18,10 @@ import {
   Users,
   BarChart3,
   Tag,
+  ExternalLink,
+  Copy,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const modules = [
   {
@@ -102,6 +105,41 @@ export default function EventDetailPage({
           )}
         </div>
       </div>
+
+      {/* Public URL card */}
+      <Card>
+        <CardContent className="flex items-center justify-between py-4">
+          <div>
+            <p className="text-sm font-medium">URL publique du media kit</p>
+            <p className="font-mono text-sm text-muted-foreground">
+              {typeof window !== "undefined" ? window.location.origin : ""}/e/{event.slug}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  `${window.location.origin}/e/${event.slug}`
+                );
+              }}
+            >
+              <Copy className="mr-1 h-3 w-3" />
+              Copier
+            </Button>
+            <a
+              href={`/e/${event.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <ExternalLink className="mr-1 h-3 w-3" />
+              Ouvrir
+            </a>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         {modules.map((mod) => (

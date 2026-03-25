@@ -13,6 +13,9 @@ export async function POST(request: Request) {
   }
 
   const stripe = getStripe();
+  if (!stripe) {
+    return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
+  }
   let event: Stripe.Event;
 
   try {

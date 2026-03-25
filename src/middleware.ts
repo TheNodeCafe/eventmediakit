@@ -14,8 +14,10 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public assets
      * - api/webhooks (webhook endpoints that don't need auth)
-     * - p/ (participant portal with magic links)
+     * - api/render/public (public render endpoint)
+     * - api/generations (public polling endpoint)
+     * - e/ (public event pages)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api/webhooks|p/).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api/webhooks|api/render/public|api/generations|e/).*)",
   ],
 };

@@ -6,6 +6,7 @@ export const eventSchema = z.object({
   start_date: z.string().optional(),
   end_date: z.string().optional(),
   locale: z.string().optional(),
+  access_password: z.string().optional(),
   branding: z
     .object({
       logo_url: z.string().optional(),
