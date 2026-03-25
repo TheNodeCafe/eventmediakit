@@ -7,14 +7,6 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,54 +37,55 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">EventMediaKit</CardTitle>
-        <CardDescription>
-          Connectez-vous à votre compte organisateur
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="vous@exemple.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Connexion</h1>
+        <p className="mt-1 text-muted-foreground">
+          Accédez à votre espace organisateur
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Connexion..." : "Se connecter"}
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            Pas encore de compte ?{" "}
-            <Link href="/register" className="text-primary underline">
-              Créer un compte
-            </Link>
-          </p>
-        </CardFooter>
+        )}
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="vous@exemple.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-11"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Mot de passe</Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Votre mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="h-11"
+          />
+        </div>
+        <Button type="submit" className="h-11 w-full text-base" disabled={loading}>
+          {loading ? "Connexion..." : "Se connecter"}
+        </Button>
       </form>
-    </Card>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Pas encore de compte ?{" "}
+        <Link href="/register" className="font-medium text-primary hover:underline">
+          Créer un compte
+        </Link>
+      </p>
+    </div>
   );
 }

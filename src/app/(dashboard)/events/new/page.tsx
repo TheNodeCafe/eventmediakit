@@ -35,8 +35,12 @@ export default function NewEventPage() {
   });
 
   async function onSubmit(data: EventFormData) {
-    const event = await createEvent.mutateAsync(data);
-    router.push(`/events/${event.id}`);
+    try {
+      const event = await createEvent.mutateAsync(data);
+      router.push(`/events/${event.id}`);
+    } catch (err) {
+      console.error("Event creation failed:", err);
+    }
   }
 
   return (
@@ -61,6 +65,11 @@ export default function NewEventPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {createEvent.isError && (
+            <div className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+              {createEvent.error?.message || "Erreur lors de la création"}
+            </div>
+          )}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nom de l&apos;événement</Label>

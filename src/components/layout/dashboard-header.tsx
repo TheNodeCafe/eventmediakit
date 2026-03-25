@@ -16,9 +16,9 @@ export function DashboardHeader() {
   }
 
   return (
-    <header className="flex h-14 items-center justify-between border-b px-6">
+    <header className="flex h-14 items-center justify-between border-b bg-white px-6">
       <div />
-      <Button variant="ghost" size="sm" onClick={handleLogout}>
+      <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground">
         <LogOut className="mr-2 h-4 w-4" />
         Déconnexion
       </Button>

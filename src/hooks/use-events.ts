@@ -44,30 +44,17 @@ export function useEvent(eventId: string) {
 
 export function useCreateEvent() {
   const queryClient = useQueryClient();
-  const org = useOrgStore((s) => s.org);
 
   return useMutation({
     mutationFn: async (formData: EventFormData) => {
-      if (!org) throw new Error("No organization");
-      const supabase = createClient();
-
-      const slug = formData.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
-
-      const { data, error } = await supabase
-        .from("events")
-        .insert({
-          ...formData,
-          organization_id: org.id,
-          slug,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as Event;
+      const res = await fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error);
+      return result.data as Event;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
