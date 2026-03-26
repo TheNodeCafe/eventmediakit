@@ -171,12 +171,12 @@ export function CanvasWrapper({
   }, [zoom, canvasWidth, canvasHeight]);
 
   return (
-    <div className="relative flex h-full items-center justify-center overflow-auto bg-neutral-100 p-8">
-      {/* Zoom controls */}
-      <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-lg border bg-white px-2 py-1 shadow-sm">
+    <div className="relative flex h-full items-center justify-center overflow-auto p-8">
+      {/* Zoom controls - floating pill */}
+      <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-black/[0.06] bg-white/90 px-1 py-0.5 shadow-sm backdrop-blur-sm">
         <button
           onClick={() => useEditorStore.getState().setZoom(Math.max(zoom - 0.1, 0.1))}
-          className="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
+          className="flex h-7 w-7 items-center justify-center rounded-full text-[13px] text-muted-foreground transition-colors hover:bg-black/[0.04] hover:text-foreground"
         >
           -
         </button>
@@ -190,19 +190,19 @@ export function CanvasWrapper({
             const scaleY = (container.clientHeight - padding) / canvasHeight;
             useEditorStore.getState().setZoom(Math.min(scaleX, scaleY, 1));
           }}
-          className="rounded px-2 py-1 text-xs font-medium text-foreground hover:bg-muted"
+          className="rounded-full px-2.5 py-1 text-[11px] font-medium tabular-nums text-foreground transition-colors hover:bg-black/[0.04]"
         >
           {Math.round(zoom * 100)}%
         </button>
         <button
           onClick={() => useEditorStore.getState().setZoom(Math.min(zoom + 0.1, 2))}
-          className="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
+          className="flex h-7 w-7 items-center justify-center rounded-full text-[13px] text-muted-foreground transition-colors hover:bg-black/[0.04] hover:text-foreground"
         >
           +
         </button>
       </div>
 
-      <div className="shadow-lg">
+      <div className="rounded-sm shadow-[0_2px_20px_rgba(0,0,0,0.08)]">
         <canvas ref={canvasRef} />
       </div>
     </div>

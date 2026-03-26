@@ -196,44 +196,44 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
 
   if (!props) {
     return (
-      <div className="flex-1 overflow-y-auto p-3">
-        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Propriétés
+      <div className="flex-1 overflow-y-auto px-3 py-4">
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+          Properties
         </h3>
-        <p className="py-8 text-center text-xs text-muted-foreground">
-          Sélectionnez un élément
+        <p className="py-12 text-center text-[12px] text-muted-foreground/40">
+          Selectionner un element
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-3">
-      <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-        Propriétés
+    <div className="flex-1 overflow-y-auto px-3 py-3">
+      <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+        Properties
       </h3>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {/* === VARIABLE ZONE === */}
         {variableFields.length > 0 && (
           <Section
-            className={props.variableField ? "border-orange-300 bg-orange-50" : "border-dashed border-muted-foreground/30"}
+            className={props.variableField ? "border-orange-200 bg-orange-50/60" : "border-dashed border-black/[0.08] bg-black/[0.01]"}
           >
             <div className="mb-1.5 flex items-center gap-1.5">
-              <Tag className="h-3.5 w-3.5 text-orange-500" />
-              <span className="text-[11px] font-semibold text-orange-600">Zone variable</span>
+              <Tag className="h-3 w-3 text-orange-400" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-500">Variable</span>
             </div>
             <Select value={props.variableField || "__none__"} onValueChange={handleVariableChange}>
-              <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-7 rounded-lg border-black/[0.08] text-[12px] shadow-none"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">Élément fixe</SelectItem>
+                <SelectItem value="__none__">Element fixe</SelectItem>
                 {variableFields.map((f) => (
                   <SelectItem key={f.id} value={f.name}>{f.label} — {f.field_type}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {props.variableField && (
-              <p className="mt-1 text-[10px] text-orange-500">Rempli par le visiteur</p>
+              <p className="mt-1.5 text-[10px] text-orange-400">Rempli par le visiteur</p>
             )}
           </Section>
         )}
@@ -258,27 +258,27 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
         {/* === ROTATION === */}
         <div>
           <SectionLabel>Rotation</SectionLabel>
-          <div className="flex items-center gap-2">
-            <RotateCw className="h-3.5 w-3.5 text-muted-foreground" />
+          <div className="flex items-center gap-1.5">
+            <RotateCw className="h-3 w-3 shrink-0 text-muted-foreground/50" />
             <Input
               type="number"
               value={props.angle}
               onChange={(e) => update("angle", parseInt(e.target.value) || 0)}
-              className="h-7 w-20 text-center text-xs"
+              className="h-7 w-16 rounded-lg border-black/[0.08] text-center text-[12px] shadow-none"
               min={0}
               max={360}
             />
-            <span className="text-[11px] text-muted-foreground">°</span>
-            <div className="flex gap-0.5">
+            <span className="text-[10px] text-muted-foreground/50">deg</span>
+            <div className="flex gap-0.5 ml-auto">
               {[0, 45, 90, 180, 270].map((a) => (
                 <button
                   key={a}
                   onClick={() => update("angle", a)}
-                  className={`rounded px-1.5 py-0.5 text-[10px] transition-colors ${
-                    props.angle === a ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+                  className={`rounded-md px-1.5 py-0.5 text-[9px] font-medium transition-colors ${
+                    props.angle === a ? "bg-primary/10 text-primary" : "text-muted-foreground/50 hover:bg-black/[0.04] hover:text-muted-foreground"
                   }`}
                 >
-                  {a}°
+                  {a}
                 </button>
               ))}
             </div>
@@ -291,7 +291,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
             <SectionLabel>Texte</SectionLabel>
             <div className="flex gap-1.5">
               <Select value={props.fontFamily ?? "Arial"} onValueChange={(v) => v && update("fontFamily", v)}>
-                <SelectTrigger className="h-7 flex-1 text-xs"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-7 flex-1 rounded-lg border-black/[0.08] text-[12px] shadow-none"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {FONTS.map((f) => (
                     <SelectItem key={f} value={f}><span style={{ fontFamily: f }}>{f}</span></SelectItem>
@@ -302,7 +302,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
                 type="number"
                 value={props.fontSize ?? 16}
                 onChange={(e) => update("fontSize", parseInt(e.target.value) || 16)}
-                className="h-7 w-16 text-center text-xs"
+                className="h-7 w-14 rounded-lg border-black/[0.08] text-center text-[12px] shadow-none"
               />
             </div>
             {/* Style buttons */}
@@ -316,7 +316,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
               <ToggleBtn active={!!props.underline} onClick={() => update("underline", !props.underline)}>
                 <Underline className="h-3.5 w-3.5" />
               </ToggleBtn>
-              <div className="mx-1 h-4 w-px bg-border" />
+              <div className="mx-1 h-4 w-px bg-black/[0.06]" />
               <ToggleBtn active={props.textAlign === "left"} onClick={() => update("textAlign", "left")}>
                 <AlignLeft className="h-3.5 w-3.5" />
               </ToggleBtn>
@@ -339,18 +339,16 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
         <div>
           <SectionLabel>Couleur</SectionLabel>
           {props.fillType === "gradient" ? (
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <input type="color" value={props.gradientColor1} onChange={(e) => updateGradient(e.target.value, props.gradientColor2 ?? "#a855f7")} className="h-7 w-7 cursor-pointer rounded border" />
-                <span className="text-[10px] text-muted-foreground">→</span>
-                <input type="color" value={props.gradientColor2} onChange={(e) => updateGradient(props.gradientColor1 ?? "#6366f1", e.target.value)} className="h-7 w-7 cursor-pointer rounded border" />
-                <span className="flex-1 text-[10px] text-muted-foreground">Dégradé</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <input type="color" value={props.gradientColor1} onChange={(e) => updateGradient(e.target.value, props.gradientColor2 ?? "#a855f7")} className="h-7 w-7 cursor-pointer appearance-none rounded-lg border border-black/[0.08] bg-transparent p-0.5" />
+              <span className="text-[10px] text-muted-foreground/40">→</span>
+              <input type="color" value={props.gradientColor2} onChange={(e) => updateGradient(props.gradientColor1 ?? "#6366f1", e.target.value)} className="h-7 w-7 cursor-pointer appearance-none rounded-lg border border-black/[0.08] bg-transparent p-0.5" />
+              <span className="ml-auto text-[10px] text-muted-foreground/40">Gradient</span>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <input type="color" value={props.fill} onChange={(e) => update("fill", e.target.value)} className="h-7 w-7 cursor-pointer rounded border" />
-              <Input value={props.fill} onChange={(e) => update("fill", e.target.value)} className="h-7 font-mono text-xs" />
+              <input type="color" value={props.fill} onChange={(e) => update("fill", e.target.value)} className="h-7 w-7 cursor-pointer appearance-none rounded-lg border border-black/[0.08] bg-transparent p-0.5" />
+              <Input value={props.fill} onChange={(e) => update("fill", e.target.value)} className="h-7 rounded-lg border-black/[0.08] font-mono text-[11px] shadow-none" />
             </div>
           )}
         </div>
@@ -372,7 +370,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
                 }}
                 className="flex-1 accent-primary"
               />
-              <span className="w-8 text-center text-[11px] text-muted-foreground">{props.rx ?? 0}</span>
+              <span className="w-8 text-center text-[11px] tabular-nums text-muted-foreground/60">{props.rx ?? 0}</span>
             </div>
           </div>
         )}
@@ -385,25 +383,25 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
               type="color"
               value={props.stroke || "#000000"}
               onChange={(e) => update("stroke", e.target.value)}
-              className="h-7 w-7 cursor-pointer rounded border"
+              className="h-7 w-7 cursor-pointer appearance-none rounded-lg border border-black/[0.08] bg-transparent p-0.5"
             />
             <Input
               type="number"
               value={props.strokeWidth ?? 0}
               onChange={(e) => update("strokeWidth", parseInt(e.target.value) || 0)}
-              className="h-7 w-16 text-center text-xs"
+              className="h-7 w-14 rounded-lg border-black/[0.08] text-center text-[12px] shadow-none"
               min={0}
               placeholder="0"
             />
-            <span className="text-[10px] text-muted-foreground">px</span>
+            <span className="text-[10px] text-muted-foreground/40">px</span>
           </div>
         </div>
 
         {/* === OPACITY === */}
         <div>
           <div className="flex items-center justify-between">
-            <SectionLabel>Opacité</SectionLabel>
-            <span className="text-[11px] text-muted-foreground">{Math.round(props.opacity * 100)}%</span>
+            <SectionLabel>Opacite</SectionLabel>
+            <span className="text-[10px] tabular-nums text-muted-foreground/50">{Math.round(props.opacity * 100)}%</span>
           </div>
           <input
             type="range"
@@ -422,18 +420,18 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
 
 // Small helper components
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <label className="mb-1 block text-[11px] font-medium text-muted-foreground">{children}</label>;
+  return <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">{children}</label>;
 }
 
 function Section({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={`rounded-lg border p-2.5 ${className ?? ""}`}>{children}</div>;
+  return <div className={`rounded-xl border p-2.5 ${className ?? ""}`}>{children}</div>;
 }
 
 function ToggleBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
-      className={`rounded p-1.5 transition-colors ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
+      className={`rounded-lg p-1.5 transition-colors ${active ? "bg-primary/10 text-primary" : "text-muted-foreground/50 hover:bg-black/[0.04] hover:text-muted-foreground"}`}
     >
       {children}
     </button>
@@ -443,12 +441,12 @@ function ToggleBtn({ active, onClick, children }: { active: boolean; onClick: ()
 function NumInput({ label, value, onChange, step = 1 }: { label: string; value: number; onChange: (v: number) => void; step?: number }) {
   return (
     <div className="flex items-center gap-1">
-      <span className="w-4 text-[10px] text-muted-foreground">{label}</span>
+      <span className="w-4 text-[10px] font-medium text-muted-foreground/50">{label}</span>
       <Input
         type="number"
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-        className="h-6 text-center text-[11px]"
+        className="h-7 rounded-lg border-black/[0.08] text-center text-[11px] tabular-nums shadow-none"
         step={step}
       />
     </div>

@@ -109,35 +109,42 @@ export function TemplateEditor({
   }
 
   return (
-    <div className="-m-8 flex h-[calc(100vh-3.5rem)] flex-col bg-white">
-      {/* Top bar: name + formats + actions */}
-      <div className="flex h-11 shrink-0 items-center justify-between border-b px-3">
-        <div className="flex items-center gap-2">
+    <div className="-m-8 flex h-[calc(100vh-3.5rem)] flex-col bg-[#f0f1f3]">
+      {/* Top bar */}
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-black/[0.06] bg-white px-3">
+        <div className="flex items-center gap-3">
           <Link
             href={backUrl ?? `/events/${eventId}/templates`}
-            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-black/[0.04] hover:text-foreground"
             title="Retour"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
+
+          <div className="h-5 w-px bg-black/[0.08]" />
+
           <Input
             value={name}
             onChange={(e) => { setName(e.target.value); setIsDirty(true); }}
             placeholder="Nom du template"
-            className="h-7 w-44 text-xs"
+            className="h-7 w-44 border-transparent bg-transparent text-[13px] font-medium shadow-none placeholder:text-muted-foreground/40 hover:bg-black/[0.03] focus:border-primary/30 focus:bg-white focus:shadow-none"
           />
-          {/* Format selector inline */}
-          <div className="flex items-center gap-1">
+
+          <div className="h-5 w-px bg-black/[0.08]" />
+
+          {/* Format selector pills */}
+          <div className="flex items-center gap-1 rounded-full bg-black/[0.04] p-0.5">
             {formats.map((f) => {
               const preset = FORMAT_PRESETS[f.key];
+              const isActive = format === f.key;
               return (
                 <button
                   key={f.key}
                   onClick={() => setFormat(f.key, preset.width, preset.height)}
-                  className={`rounded px-2 py-1 text-[10px] font-medium transition-colors ${
-                    format === f.key
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
+                  className={`rounded-full px-3 py-1 text-[11px] font-medium transition-all ${
+                    isActive
+                      ? "bg-white text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {f.label}
@@ -146,25 +153,35 @@ export function TemplateEditor({
             })}
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
+
+        <div className="flex items-center gap-2">
           <Button
-            variant={previewMode ? "default" : "outline"}
+            variant={previewMode ? "default" : "ghost"}
             size="sm"
             onClick={togglePreview}
-            className="h-7 text-xs"
+            className={`h-7 rounded-lg text-[12px] font-medium ${
+              previewMode
+                ? ""
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
-            <Eye className="mr-1 h-3 w-3" />
+            <Eye className="mr-1.5 h-3.5 w-3.5" />
             {previewMode ? "Quitter" : "Aperçu"}
           </Button>
-          <Button size="sm" onClick={handleSave} disabled={saving || !name.trim()} className="h-7 text-xs">
-            <Save className="mr-1 h-3 w-3" />
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={saving || !name.trim()}
+            className="h-7 rounded-lg text-[12px] font-medium shadow-none"
+          >
+            <Save className="mr-1.5 h-3.5 w-3.5" />
             {saving ? "..." : "Sauver"}
             {isDirty && !saving && " *"}
           </Button>
         </div>
       </div>
 
-      {/* 3-panel layout — takes remaining height */}
+      {/* 3-panel layout */}
       <div className="flex min-h-0 flex-1">
         {/* Left: Elements */}
         {!previewMode && (
@@ -172,7 +189,7 @@ export function TemplateEditor({
         )}
 
         {/* Center: Canvas workspace */}
-        <div className="min-h-0 flex-1 overflow-auto bg-neutral-100">
+        <div className="min-h-0 flex-1 overflow-auto bg-[#e8eaed]">
           <CanvasWrapper
             initialJson={initialJson}
             onCanvasReady={handleCanvasReady}
@@ -181,14 +198,14 @@ export function TemplateEditor({
 
         {/* Right: Properties + Layers */}
         {!previewMode && (
-          <div className="flex w-64 min-h-0 flex-col border-l bg-white">
+          <div className="flex w-[272px] min-h-0 flex-col border-l border-black/[0.06] bg-white">
             <div className="min-h-0 flex-1 overflow-y-auto">
               <PropertiesPanel
                 canvas={canvasRef.current}
                 variableFields={variableFields}
               />
             </div>
-            <div className="h-48 shrink-0 overflow-y-auto">
+            <div className="h-52 shrink-0 overflow-y-auto border-t border-black/[0.06]">
               <LayersPanel key={layersKey} canvas={canvasRef.current} />
             </div>
           </div>

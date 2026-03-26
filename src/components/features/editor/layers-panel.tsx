@@ -178,21 +178,21 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
   }
 
   return (
-    <div className="flex flex-col border-t border-border">
+    <div className="flex flex-col">
       <div className="flex items-center justify-between px-3 py-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
           Calques
         </h3>
-        <span className="text-[10px] text-muted-foreground/50">{layers.length}</span>
+        <span className="rounded-full bg-black/[0.04] px-1.5 py-0.5 text-[9px] font-medium tabular-nums text-muted-foreground/40">{layers.length}</span>
       </div>
 
       <div className="flex-1 overflow-y-auto">
         {layers.length === 0 ? (
-          <p className="px-3 py-4 text-center text-[11px] text-muted-foreground/50">
-            Ajoutez des éléments
+          <p className="px-3 py-6 text-center text-[11px] text-muted-foreground/30">
+            Ajoutez des elements
           </p>
         ) : (
-          <div className="space-y-px px-1 pb-2">
+          <div className="space-y-px px-1.5 pb-2">
             {layers.map((layer) => {
               const isSelected = layer.id === selectedObjectId;
               const Icon = getLayerIcon(layer.type);
@@ -201,23 +201,23 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
                 <div
                   key={layer.id}
                   onClick={() => handleSelect(layer.id)}
-                  className={`group flex items-center gap-2 rounded-md px-2 py-1.5 text-[12px] transition-colors cursor-pointer ${
+                  className={`group flex items-center gap-2 rounded-lg px-2 py-1.5 text-[11px] transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-primary/10 text-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      ? "bg-primary/[0.07] text-foreground"
+                      : "text-muted-foreground hover:bg-black/[0.03] hover:text-foreground"
                   }`}
                 >
-                  <Icon className="h-3.5 w-3.5 shrink-0" />
-                  <span className="flex-1 truncate">{layer.name}</span>
+                  <Icon className={`h-3 w-3 shrink-0 ${isSelected ? "text-primary" : ""}`} />
+                  <span className="flex-1 truncate font-medium">{layer.name}</span>
 
                   {/* Action buttons - visible on hover */}
-                  <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="flex shrink-0 items-center gap-0 opacity-0 transition-opacity group-hover:opacity-100">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleMoveUp(layer.id);
                       }}
-                      className="rounded p-0.5 hover:bg-muted"
+                      className="rounded-md p-1 text-muted-foreground/50 transition-colors hover:bg-black/[0.06] hover:text-foreground"
                       title="Monter"
                     >
                       <ChevronUp className="h-3 w-3" />
@@ -227,7 +227,7 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
                         e.stopPropagation();
                         handleMoveDown(layer.id);
                       }}
-                      className="rounded p-0.5 hover:bg-muted"
+                      className="rounded-md p-1 text-muted-foreground/50 transition-colors hover:bg-black/[0.06] hover:text-foreground"
                       title="Descendre"
                     >
                       <ChevronDown className="h-3 w-3" />
@@ -237,13 +237,13 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
                         e.stopPropagation();
                         handleToggleVisibility(layer.id);
                       }}
-                      className="rounded p-0.5 hover:bg-muted"
+                      className="rounded-md p-1 text-muted-foreground/50 transition-colors hover:bg-black/[0.06] hover:text-foreground"
                       title={layer.visible ? "Masquer" : "Afficher"}
                     >
                       {layer.visible ? (
                         <Eye className="h-3 w-3" />
                       ) : (
-                        <EyeOff className="h-3 w-3 text-muted-foreground/50" />
+                        <EyeOff className="h-3 w-3 text-muted-foreground/30" />
                       )}
                     </button>
                     <button
@@ -251,7 +251,7 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
                         e.stopPropagation();
                         handleDuplicate(layer.id);
                       }}
-                      className="rounded p-0.5 hover:bg-muted"
+                      className="rounded-md p-1 text-muted-foreground/50 transition-colors hover:bg-black/[0.06] hover:text-foreground"
                       title="Dupliquer"
                     >
                       <Copy className="h-3 w-3" />
@@ -261,7 +261,7 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
                         e.stopPropagation();
                         handleDelete(layer.id);
                       }}
-                      className="rounded p-0.5 hover:bg-red-500/30"
+                      className="rounded-md p-1 text-muted-foreground/50 transition-colors hover:bg-red-500/20 hover:text-red-600"
                       title="Supprimer"
                     >
                       <Trash2 className="h-3 w-3" />
