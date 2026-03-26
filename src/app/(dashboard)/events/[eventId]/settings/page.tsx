@@ -33,6 +33,7 @@ interface Branding {
   show_dates?: boolean;
   show_description?: boolean;
   show_org_name?: boolean;
+  show_header_overlay?: boolean;
 }
 
 export default function EventSettingsPage({
@@ -358,6 +359,11 @@ export default function EventSettingsPage({
                 enabled={branding.show_org_name !== false}
                 onChange={(v) => updateBranding("show_org_name", v)}
               />
+              <ToggleOption
+                label="Overlay couleur sur l'image de fond"
+                enabled={branding.show_header_overlay !== false}
+                onChange={(v) => updateBranding("show_header_overlay", v)}
+              />
             </CardContent>
           </Card>
         </div>
@@ -385,7 +391,7 @@ export default function EventSettingsPage({
                         : { backgroundColor: primaryColor }
                     }
                   >
-                    {branding.header_image_url && (
+                    {branding.header_image_url && branding.show_header_overlay !== false && (
                       <div
                         className="absolute inset-0"
                         style={{ backgroundColor: `${primaryColor}88` }}

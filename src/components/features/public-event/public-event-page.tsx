@@ -34,6 +34,7 @@ interface TemplateData {
   width: number;
   height: number;
   canvas_json: Record<string, unknown>;
+  thumbnail_url: string | null;
   template_categories: { category_id: string }[];
 }
 
@@ -103,6 +104,7 @@ export function PublicEventPage({
   const showDates = b?.show_dates !== false;
   const showDescription = b?.show_description !== false;
   const showOrgName = b?.show_org_name !== false;
+  const showHeaderOverlay = b?.show_header_overlay !== false;
 
   // Filter templates by category
   const hasCategories = categories.length > 0;
@@ -247,7 +249,7 @@ export function PublicEventPage({
             : { backgroundColor: primaryColor ?? "#1e1b4b" }
         }
       >
-        {headerImageUrl && <div className="absolute inset-0" style={{ backgroundColor: `${primaryColor ?? "#1e1b4b"}77` }} />}
+        {headerImageUrl && showHeaderOverlay && <div className="absolute inset-0" style={{ backgroundColor: `${primaryColor ?? "#1e1b4b"}77` }} />}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white/20 blur-3xl" />
         </div>
