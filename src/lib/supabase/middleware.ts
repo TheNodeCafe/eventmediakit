@@ -36,9 +36,9 @@ export async function updateSession(request: NextRequest) {
   // Redirect unauthenticated users trying to access dashboard
   if (
     !user &&
-    request.nextUrl.pathname.startsWith("/events") ||
+    (request.nextUrl.pathname.startsWith("/events") ||
     request.nextUrl.pathname.startsWith("/settings") ||
-    request.nextUrl.pathname.startsWith("/billing")
+    request.nextUrl.pathname.startsWith("/billing"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
