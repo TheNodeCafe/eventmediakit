@@ -152,7 +152,14 @@ export function TemplatePreview({
   }, [fieldValues, injectValues]);
 
   return (
-    <div className="flex justify-center overflow-hidden rounded-lg border bg-white">
+    <div
+      className="overflow-hidden rounded-lg"
+      style={{
+        width: width * scale,
+        height: height * scale,
+        margin: "0 auto",
+      }}
+    >
       <canvas ref={canvasRef} />
     </div>
   );
