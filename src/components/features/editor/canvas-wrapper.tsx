@@ -5,10 +5,9 @@ import { Canvas, Rect, Textbox, FabricImage, FabricObject, Line } from "fabric";
 import { useEditorStore } from "@/store/editor-store";
 import { CUSTOM_PROPERTIES } from "@/lib/fabric/variable-fields";
 
-// Register custom properties for serialization
 FabricObject.customProperties = [...CUSTOM_PROPERTIES];
 
-const SNAP_THRESHOLD = 8;
+const SNAP_THRESHOLD = 10;
 
 interface CanvasWrapperProps {
   onCanvasReady: (canvas: Canvas) => void;
@@ -21,9 +20,34 @@ export function CanvasWrapper({
 }: CanvasWrapperProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<Canvas | null>(null);
-  const guideLinesRef = useRef<Line[]>([]);
+  const guideLinesRef = useRef<FabricObject[]>([]);
   const { canvasWidth, canvasHeight, zoom, setSelectedObjectId, setIsDirty } =
     useEditorStore();
+
+  // Keep current dimensions in refs so event handlers always have latest values
+  const dimsRef = useRef({ w: canvasWidth, h: canvasHeight, z: zoom });
+  dimsRef.current = { w: canvasWidth, h: canvasHeight, z: zoom };
+
+  function clearGuides(canvas: Canvas) {
+    guideLinesRef.current.forEach((g) => canvas.remove(g));
+    guideLinesRef.current = [];
+  }
+
+  function addGuide(canvas: Canvas, x1: number, y1: number, x2: number, y2: number) {
+    const z = dimsRef.current.z;
+    const line = new Line([x1, y1, x2, y2], {
+      stroke: "#6366f1",
+      strokeWidth: 1.5 / z,
+      strokeDashArray: [6 / z, 4 / z],
+      selectable: false,
+      evented: false,
+      excludeFromExport: true,
+      opacity: 0.9,
+    } as never);
+    canvas.add(line);
+    canvas.bringObjectToFront(line);
+    guideLinesRef.current.push(line);
+  }
 
   const initCanvas = useCallback(() => {
     if (!canvasRef.current || fabricRef.current) return;
@@ -43,12 +67,10 @@ export function CanvasWrapper({
       const id = (e.selected?.[0] as FabricObject & { id?: string })?.id;
       setSelectedObjectId(id ?? null);
     });
-
     canvas.on("selection:updated", (e) => {
       const id = (e.selected?.[0] as FabricObject & { id?: string })?.id;
       setSelectedObjectId(id ?? null);
     });
-
     canvas.on("selection:cleared", () => {
       setSelectedObjectId(null);
     });
@@ -56,59 +78,69 @@ export function CanvasWrapper({
     // Track changes
     canvas.on("object:modified", () => {
       setIsDirty(true);
-      clearGuideLines(canvas);
+      clearGuides(canvas);
     });
     canvas.on("object:added", () => setIsDirty(true));
     canvas.on("object:removed", () => setIsDirty(true));
 
-    // Snapping guides
+    // Snapping guides — uses dimsRef for always-current values
     canvas.on("object:moving", (e) => {
       const obj = e.target;
       if (!obj) return;
 
-      clearGuideLines(canvas);
+      clearGuides(canvas);
 
-      const cW = canvasWidth;
-      const cH = canvasHeight;
-      const objCenter = obj.getCenterPoint();
+      const { w: cW, h: cH } = dimsRef.current;
       const objLeft = obj.left ?? 0;
       const objTop = obj.top ?? 0;
       const objWidth = (obj.width ?? 0) * (obj.scaleX ?? 1);
       const objHeight = (obj.height ?? 0) * (obj.scaleY ?? 1);
+      const objCenterX = objLeft + objWidth / 2;
+      const objCenterY = objTop + objHeight / 2;
+      const objRight = objLeft + objWidth;
+      const objBottom = objTop + objHeight;
 
-      // Snap to horizontal center
-      if (Math.abs(objCenter.x - cW / 2) < SNAP_THRESHOLD) {
+      let snappedX = false;
+      let snappedY = false;
+
+      // Horizontal center
+      if (Math.abs(objCenterX - cW / 2) < SNAP_THRESHOLD) {
         obj.set("left", cW / 2 - objWidth / 2);
-        addGuideLine(canvas, cW / 2, 0, cW / 2, cH, "vertical");
+        addGuide(canvas, cW / 2, 0, cW / 2, cH);
+        snappedX = true;
       }
-
-      // Snap to vertical center
-      if (Math.abs(objCenter.y - cH / 2) < SNAP_THRESHOLD) {
-        obj.set("top", cH / 2 - objHeight / 2);
-        addGuideLine(canvas, 0, cH / 2, cW, cH / 2, "horizontal");
-      }
-
-      // Snap to left edge
-      if (Math.abs(objLeft) < SNAP_THRESHOLD) {
+      // Left edge
+      if (!snappedX && Math.abs(objLeft) < SNAP_THRESHOLD) {
         obj.set("left", 0);
+        addGuide(canvas, 0, 0, 0, cH);
       }
-      // Snap to right edge
-      if (Math.abs(objLeft + objWidth - cW) < SNAP_THRESHOLD) {
+      // Right edge
+      if (!snappedX && Math.abs(objRight - cW) < SNAP_THRESHOLD) {
         obj.set("left", cW - objWidth);
+        addGuide(canvas, cW, 0, cW, cH);
       }
-      // Snap to top edge
-      if (Math.abs(objTop) < SNAP_THRESHOLD) {
+
+      // Vertical center
+      if (Math.abs(objCenterY - cH / 2) < SNAP_THRESHOLD) {
+        obj.set("top", cH / 2 - objHeight / 2);
+        addGuide(canvas, 0, cH / 2, cW, cH / 2);
+        snappedY = true;
+      }
+      // Top edge
+      if (!snappedY && Math.abs(objTop) < SNAP_THRESHOLD) {
         obj.set("top", 0);
+        addGuide(canvas, 0, 0, cW, 0);
       }
-      // Snap to bottom edge
-      if (Math.abs(objTop + objHeight - cH) < SNAP_THRESHOLD) {
+      // Bottom edge
+      if (!snappedY && Math.abs(objBottom - cH) < SNAP_THRESHOLD) {
         obj.set("top", cH - objHeight);
+        addGuide(canvas, 0, cH, cW, cH);
       }
 
       canvas.renderAll();
     });
 
-    // Load initial JSON if provided
+    // Load initial JSON
     if (initialJson && Object.keys(initialJson).length > 0) {
       canvas.loadFromJSON(initialJson).then(() => {
         canvas.renderAll();
@@ -119,35 +151,8 @@ export function CanvasWrapper({
     onCanvasReady(canvas);
 
     return canvas;
-  }, [canvasWidth, canvasHeight, zoom, initialJson, onCanvasReady, setSelectedObjectId, setIsDirty]);
-
-  function addGuideLine(
-    canvas: Canvas,
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    _direction: string
-  ) {
-    const line = new Line([x1, y1, x2, y2], {
-      stroke: "#6366f1",
-      strokeWidth: 1 / zoom,
-      strokeDashArray: [4 / zoom, 4 / zoom],
-      selectable: false,
-      evented: false,
-      excludeFromExport: true,
-    } as never);
-    canvas.add(line);
-    canvas.bringObjectToFront(line);
-    guideLinesRef.current.push(line);
-  }
-
-  function clearGuideLines(canvas: Canvas) {
-    guideLinesRef.current.forEach((line) => {
-      canvas.remove(line);
-    });
-    guideLinesRef.current = [];
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const canvas = initCanvas();
@@ -158,7 +163,7 @@ export function CanvasWrapper({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update zoom when it changes
+  // Update zoom/dimensions
   useEffect(() => {
     const canvas = fabricRef.current;
     if (!canvas) return;
@@ -172,7 +177,7 @@ export function CanvasWrapper({
 
   return (
     <div className="relative flex h-full items-center justify-center overflow-auto p-8">
-      {/* Zoom controls - floating pill */}
+      {/* Zoom controls */}
       <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-black/[0.06] bg-white/90 px-1 py-0.5 shadow-sm backdrop-blur-sm">
         <button
           onClick={() => useEditorStore.getState().setZoom(Math.max(zoom - 0.1, 0.1))}
@@ -182,7 +187,6 @@ export function CanvasWrapper({
         </button>
         <button
           onClick={() => {
-            // Fit to viewport
             const container = canvasRef.current?.parentElement?.parentElement;
             if (!container) return;
             const padding = 80;
