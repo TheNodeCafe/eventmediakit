@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { TemplateEditor } from "@/components/features/editor/template-editor";
 import { useCreateTemplate } from "@/hooks/use-templates";
 import { useVariableFields } from "@/hooks/use-variable-fields";
+import { useCategories } from "@/hooks/use-categories";
 
 export default function NewTemplateEditorPage({
   params,
@@ -15,6 +16,7 @@ export default function NewTemplateEditorPage({
   const router = useRouter();
   const createTemplate = useCreateTemplate(eventId);
   const { data: variableFields } = useVariableFields(eventId);
+  const { data: categories } = useCategories(eventId);
 
   async function handleSave(data: {
     name: string;
@@ -22,6 +24,7 @@ export default function NewTemplateEditorPage({
     format: string;
     width: number;
     height: number;
+    category_ids?: string[];
   }) {
     const template = await createTemplate.mutateAsync(data);
     router.replace(`/events/${eventId}/templates/${template.id}/editor`);
@@ -31,6 +34,7 @@ export default function NewTemplateEditorPage({
     <TemplateEditor
       eventId={eventId}
       variableFields={variableFields ?? []}
+      categories={categories ?? []}
       onSave={handleSave}
     />
   );

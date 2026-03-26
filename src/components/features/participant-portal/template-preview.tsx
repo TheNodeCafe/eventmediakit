@@ -19,8 +19,9 @@ export function TemplatePreview({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fabricRef = useRef<any>(null);
   const initDone = useRef(false);
-  const maxPreviewWidth = 560;
-  const scale = Math.min(maxPreviewWidth / width, 1);
+  const maxPreviewWidth = 380;
+  const maxPreviewHeight = 450;
+  const scale = Math.min(maxPreviewWidth / width, maxPreviewHeight / height, 1);
 
   const fieldValuesRef = useRef(fieldValues);
   fieldValuesRef.current = fieldValues;

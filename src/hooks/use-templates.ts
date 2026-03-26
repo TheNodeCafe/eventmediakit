@@ -45,6 +45,7 @@ interface SaveTemplateInput {
   format: string;
   width: number;
   height: number;
+  category_ids?: string[];
 }
 
 export function useCreateTemplate(eventId: string) {

@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/store/editor-store";
 import { FORMAT_PRESETS } from "@/lib/fabric/format-presets";
-import type { TemplateFormat, VariableFieldDefinition } from "@/types";
-import { Save, Eye, ArrowLeft } from "lucide-react";
+import type { TemplateFormat, VariableFieldDefinition, ParticipantCategory } from "@/types";
+import { Save, Eye, ArrowLeft, Tag } from "lucide-react";
 import Link from "next/link";
 
 interface TemplateEditorProps {
@@ -21,12 +21,15 @@ interface TemplateEditorProps {
   initialName?: string;
   initialJson?: Record<string, unknown>;
   variableFields: VariableFieldDefinition[];
+  categories?: ParticipantCategory[];
+  initialCategoryIds?: string[];
   onSave: (data: {
     name: string;
     canvas_json: Record<string, unknown>;
     format: string;
     width: number;
     height: number;
+    category_ids?: string[];
   }) => Promise<void>;
 }
 
@@ -42,11 +45,14 @@ export function TemplateEditor({
   initialName = "",
   initialJson,
   variableFields,
+  categories = [],
+  initialCategoryIds = [],
   onSave,
   backUrl,
 }: TemplateEditorProps) {
   const canvasRef = useRef<Canvas | null>(null);
   const [name, setName] = useState(initialName);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(initialCategoryIds);
   const [saving, setSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [layersKey, setLayersKey] = useState(0);
@@ -73,6 +79,7 @@ export function TemplateEditor({
         format,
         width: canvasWidth,
         height: canvasHeight,
+        category_ids: selectedCategoryIds,
       });
       setIsDirty(false);
     } finally {
@@ -155,6 +162,39 @@ export function TemplateEditor({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Category badges */}
+          {categories.length > 0 && (
+            <div className="flex items-center gap-1 mr-1">
+              <Tag className="h-3 w-3 text-muted-foreground/50" />
+              {categories.map((cat) => {
+                const isSelected = selectedCategoryIds.includes(cat.id);
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => {
+                      setSelectedCategoryIds((prev) =>
+                        isSelected
+                          ? prev.filter((id) => id !== cat.id)
+                          : [...prev, cat.id]
+                      );
+                      setIsDirty(true);
+                    }}
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-all ${
+                      isSelected
+                        ? "bg-primary/10 text-primary ring-1 ring-primary/20"
+                        : "bg-black/[0.04] text-muted-foreground/60 hover:bg-black/[0.06]"
+                    }`}
+                    title={isSelected ? `Retirer ${cat.name}` : `Ajouter ${cat.name}`}
+                  >
+                    {cat.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="h-5 w-px bg-black/[0.08]" />
+
           <Button
             variant={previewMode ? "default" : "ghost"}
             size="sm"

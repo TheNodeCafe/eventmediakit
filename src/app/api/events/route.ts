@@ -118,6 +118,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Create default "Visiteur" category
+    await admin.from("participant_categories").insert({
+      event_id: event.id,
+      name: "Visiteur",
+      slug: "visiteur",
+      sort_order: 0,
+    });
+
     return NextResponse.json({ success: true, data: event });
   } catch (error) {
     console.error("[POST /api/events]", error);

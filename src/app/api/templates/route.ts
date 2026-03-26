@@ -30,6 +30,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
+    // Save category associations
+    if (body.category_ids?.length && data) {
+      await admin.from("template_categories").insert(
+        body.category_ids.map((cid: string) => ({
+          template_id: data.id,
+          category_id: cid,
+        }))
+      );
+    }
+
     return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error("[POST /api/templates]", error);
@@ -63,6 +73,21 @@ export async function PATCH(request: Request) {
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    // Update category associations
+    if (body.category_ids !== undefined && data) {
+      // Delete existing
+      await admin.from("template_categories").delete().eq("template_id", data.id);
+      // Insert new
+      if (body.category_ids.length > 0) {
+        await admin.from("template_categories").insert(
+          body.category_ids.map((cid: string) => ({
+            template_id: data.id,
+            category_id: cid,
+          }))
+        );
+      }
     }
 
     return NextResponse.json({ success: true, data });
