@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Loader2, Lock, CheckCircle, ImageIcon } from "lucide-react";
+import { Download, Loader2, Lock, CheckCircle, ImageIcon, Sparkles } from "lucide-react";
 import { TemplatePreview } from "../participant-portal/template-preview";
 import { cn } from "@/lib/utils";
 import { FORMAT_PRESETS } from "@/lib/fabric/format-presets";
@@ -194,26 +194,38 @@ export function PublicEventPage({
   // Password gate
   if (!authenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
-        <Card className="w-full max-w-sm">
-          <CardContent className="pt-6">
-            <div className="mb-6 text-center">
-              {org.logo_url && (
+      <div
+        className="flex min-h-screen items-center justify-center px-4"
+        style={{
+          background: `linear-gradient(135deg, ${primaryColor ?? "#1e1b4b"} 0%, ${primaryColor ? primaryColor + "dd" : "#312e81"} 50%, ${primaryColor ? primaryColor + "99" : "#4338ca"} 100%)`,
+        }}
+      >
+        <Card className="w-full max-w-sm border-0 shadow-2xl">
+          <CardContent className="p-8">
+            <div className="mb-8 text-center">
+              {org.logo_url ? (
                 <img
                   src={org.logo_url}
                   alt=""
-                  className="mx-auto mb-4 h-12 object-contain"
+                  className="mx-auto mb-5 h-14 object-contain"
                 />
+              ) : (
+                <div
+                  className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl"
+                  style={{ backgroundColor: primaryColor ?? "#6366f1" }}
+                >
+                  <Sparkles className="h-7 w-7 text-white" />
+                </div>
               )}
-              <h1 className="text-xl font-bold">{event.name}</h1>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <h1 className="text-xl font-bold tracking-tight">{event.name}</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
                 Entrez le mot de passe pour accéder au media kit
               </p>
             </div>
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <div className="space-y-2">
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
                   <Input
                     type="password"
                     placeholder="Mot de passe"
@@ -222,16 +234,24 @@ export function PublicEventPage({
                       setPassword(e.target.value);
                       setPasswordError(false);
                     }}
-                    className="pl-10"
+                    className="h-11 rounded-xl pl-10 text-[15px]"
                   />
                 </div>
                 {passwordError && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-[13px] font-medium text-destructive">
                     Mot de passe incorrect
                   </p>
                 )}
               </div>
-              <Button type="submit" className="w-full">
+              <Button
+                type="submit"
+                className="h-11 w-full rounded-xl text-[15px] font-semibold shadow-lg"
+                style={
+                  primaryColor
+                    ? { backgroundColor: primaryColor }
+                    : undefined
+                }
+              >
                 Accéder au media kit
               </Button>
             </form>
@@ -242,44 +262,53 @@ export function PublicEventPage({
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header with event branding */}
+    <div className="min-h-screen bg-[#fafafa]">
+      {/* Hero header */}
       <header
-        className="relative overflow-hidden px-6 py-8 text-white"
+        className="relative overflow-hidden"
         style={{ backgroundColor: primaryColor ?? "#1e1b4b" }}
       >
-        <div className="mx-auto max-w-6xl">
-          <div className="flex items-center gap-4">
-            {org.logo_url && (
-              <img
-                src={org.logo_url}
-                alt={org.name}
-                className="h-14 object-contain"
-              />
-            )}
-            <div>
-              <h1 className="text-2xl font-bold">{event.name}</h1>
-              {event.start_date && (
-                <p className="text-sm opacity-80">
-                  {new Date(event.start_date).toLocaleDateString("fr-FR", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                  {event.end_date &&
-                    ` - ${new Date(event.end_date).toLocaleDateString("fr-FR", {
+        {/* Decorative elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white/20 blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 h-60 w-60 rounded-full bg-white/10 blur-3xl" />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/10 to-transparent" />
+
+        <div className="relative mx-auto max-w-6xl px-6 py-10 lg:py-14">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-5">
+              {org.logo_url && (
+                <img
+                  src={org.logo_url}
+                  alt={org.name}
+                  className="h-16 rounded-xl object-contain shadow-lg"
+                />
+              )}
+              <div className="text-white">
+                <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">{event.name}</h1>
+                {event.start_date && (
+                  <p className="mt-1.5 text-sm font-medium text-white/60">
+                    {new Date(event.start_date).toLocaleDateString("fr-FR", {
                       day: "numeric",
                       month: "long",
                       year: "numeric",
-                    })}`}
-                </p>
-              )}
+                    })}
+                    {event.end_date &&
+                      ` — ${new Date(event.end_date).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}`}
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="ml-auto text-right">
-              <p className="text-xl font-bold tracking-wider">MEDIAKIT</p>
-              <p className="text-xs opacity-70">
-                Bannières et visuels personnalisables
-              </p>
+            <div className="text-white/90">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
+                <Sparkles className="h-4 w-4" />
+                <span className="text-sm font-semibold tracking-wide">MEDIAKIT</span>
+              </div>
             </div>
           </div>
         </div>
@@ -287,28 +316,33 @@ export function PublicEventPage({
 
       {/* Description */}
       {event.description && (
-        <div className="mx-auto max-w-6xl px-6 py-6 text-center">
-          <p className="text-muted-foreground">{event.description}</p>
+        <div className="border-b border-border/30 bg-white">
+          <div className="mx-auto max-w-6xl px-6 py-5">
+            <p className="text-center text-[15px] text-muted-foreground leading-relaxed">{event.description}</p>
+          </div>
         </div>
       )}
 
       {/* Category tabs */}
       {hasCategories && someTemplatesHaveCategories && (
-        <div className="border-b">
-          <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-6 py-2">
+        <div className="border-b border-border/30 bg-white">
+          <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-6 py-3">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => handleCategoryChange(cat.id)}
                 className={cn(
-                  "shrink-0 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors",
+                  "shrink-0 rounded-full px-5 py-2 text-[13px] font-semibold transition-all duration-200",
                   activeCategory === cat.id
-                    ? "border-transparent text-white"
-                    : "border-border bg-white text-foreground hover:bg-muted"
+                    ? "text-white shadow-md"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
                 style={
                   activeCategory === cat.id
-                    ? { backgroundColor: primaryColor ?? "#6366f1" }
+                    ? {
+                        backgroundColor: primaryColor ?? "#6366f1",
+                        boxShadow: `0 4px 14px ${primaryColor ?? "#6366f1"}33`,
+                      }
                     : undefined
                 }
               >
@@ -319,15 +353,23 @@ export function PublicEventPage({
         </div>
       )}
 
-      {/* Main content: form + preview side by side */}
-      <div className="mx-auto max-w-6xl px-6 py-8">
-        <div className="grid gap-8 lg:grid-cols-2">
-          {/* Left: Format selector + Form */}
+      {/* Main content */}
+      <div className="mx-auto max-w-6xl px-6 py-8 lg:py-10">
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+          {/* Left: Form */}
           <div className="space-y-6">
+            {/* Heading */}
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">Personnalisez votre visuel</h2>
+              <p className="mt-1 text-[13px] text-muted-foreground">
+                Remplissez les champs ci-dessous pour personnaliser votre bannière
+              </p>
+            </div>
+
             {/* Format/template selector */}
             {categoryTemplates.length > 1 && (
               <div>
-                <h3 className="mb-3 flex items-center gap-2 font-medium">
+                <h3 className="mb-3 flex items-center gap-2 text-[13px] font-semibold text-muted-foreground">
                   <ImageIcon className="h-4 w-4" />
                   Choisir le format
                 </h3>
@@ -343,21 +385,21 @@ export function PublicEventPage({
                           setDownloadDone(false);
                         }}
                         className={cn(
-                          "flex flex-col items-center rounded-lg border-2 p-3 transition-colors",
+                          "flex flex-col items-center rounded-xl border-2 p-3.5 transition-all duration-200",
                           isActive
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/50"
+                            ? "border-primary/80 bg-primary/5 shadow-sm"
+                            : "border-border/50 bg-white hover:border-primary/30 hover:shadow-sm"
                         )}
                       >
                         <div
-                          className="mb-2 rounded bg-muted"
+                          className="mb-2 rounded-md bg-muted/60"
                           style={{
                             width: 60,
                             height: 60 * (t.height / t.width),
                             maxHeight: 80,
                           }}
                         />
-                        <span className="text-xs font-medium">
+                        <span className="text-[12px] font-semibold">
                           {preset?.label.split(" (")[0] ?? t.name}
                         </span>
                       </button>
@@ -371,7 +413,7 @@ export function PublicEventPage({
             <div className="space-y-4">
               {fieldDefinitions.map((field) => (
                 <div key={field.id} className="space-y-1.5">
-                  <Label className="flex items-center gap-2">
+                  <Label className="flex items-center gap-1.5 text-[13px] font-semibold">
                     {field.label}
                     {field.required && (
                       <span className="text-destructive">*</span>
@@ -381,14 +423,17 @@ export function PublicEventPage({
                     <Textarea
                       value={fieldValues[field.name] ?? ""}
                       onChange={(e) => updateField(field.name, e.target.value)}
-                      placeholder={`Exemple : ${field.label}`}
+                      placeholder={`Saisissez votre ${field.label.toLowerCase()}`}
+                      className="min-h-[90px] rounded-xl bg-white text-[14px] shadow-sm resize-none"
                     />
                   ) : field.field_type === "image" ? (
-                    <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors hover:border-primary/50">
-                      <ImageIcon className="mb-2 h-8 w-8 text-muted-foreground" />
-                      <p className="mb-1 text-sm font-medium">
+                    <div className="group flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border/50 bg-white p-6 transition-all hover:border-primary/40 hover:bg-primary/[0.02]">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted/60 transition-colors group-hover:bg-primary/10">
+                        <ImageIcon className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
+                      </div>
+                      <p className="mt-3 text-[13px] font-medium">
                         Déposez votre image ici ou{" "}
-                        <label className="cursor-pointer font-semibold underline">
+                        <label className="cursor-pointer font-semibold text-primary hover:text-primary/80">
                           parcourir
                           <input
                             type="file"
@@ -406,14 +451,14 @@ export function PublicEventPage({
                           />
                         </label>
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        Formats supportés : png, svg, jpg, gif
+                      <p className="mt-1 text-[11px] text-muted-foreground/60">
+                        PNG, SVG, JPG, GIF
                       </p>
                       {fieldValues[field.name] && (
                         <img
                           src={fieldValues[field.name]}
                           alt=""
-                          className="mt-3 h-20 rounded object-contain"
+                          className="mt-4 h-20 rounded-lg object-contain shadow-sm"
                         />
                       )}
                     </div>
@@ -421,7 +466,8 @@ export function PublicEventPage({
                     <Input
                       value={fieldValues[field.name] ?? ""}
                       onChange={(e) => updateField(field.name, e.target.value)}
-                      placeholder={`Exemple : ${field.label}`}
+                      placeholder={`Saisissez votre ${field.label.toLowerCase()}`}
+                      className="h-11 rounded-xl bg-white text-[14px] shadow-sm"
                     />
                   )}
                 </div>
@@ -431,12 +477,15 @@ export function PublicEventPage({
               {activeTemplate && (
                 <Button
                   size="lg"
-                  className="w-full"
+                  className="h-12 w-full rounded-xl text-[15px] font-semibold shadow-lg transition-all duration-200 hover:shadow-xl"
                   onClick={handleDownload}
                   disabled={downloading}
                   style={
                     primaryColor
-                      ? { backgroundColor: primaryColor }
+                      ? {
+                          backgroundColor: primaryColor,
+                          boxShadow: `0 8px 24px ${primaryColor}33`,
+                        }
                       : undefined
                   }
                 >
@@ -465,15 +514,15 @@ export function PublicEventPage({
           <div className="lg:sticky lg:top-8 lg:self-start">
             {activeTemplate ? (
               <div>
-                <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Aperçu :</span>
-                  <span className="font-medium">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-[13px] font-semibold text-muted-foreground">Aperçu en direct</span>
+                  <span className="rounded-full bg-muted/60 px-3 py-1 text-[11px] font-semibold text-muted-foreground">
                     {FORMAT_PRESETS[activeTemplate.format as TemplateFormat]
                       ?.label ?? activeTemplate.format}{" "}
                     ({activeTemplate.width}x{activeTemplate.height})
                   </span>
                 </div>
-                <div className="overflow-hidden rounded-lg border shadow-sm">
+                <div className="overflow-hidden rounded-2xl border border-border/30 bg-white shadow-lg">
                   <TemplatePreview
                     key={activeTemplate.id}
                     canvasJson={activeTemplate.canvas_json}
@@ -484,17 +533,30 @@ export function PublicEventPage({
                 </div>
               </div>
             ) : (
-              <div className="flex h-64 items-center justify-center rounded-lg border bg-muted/50">
-                <p className="text-sm text-muted-foreground">
-                  {templates.length === 0
-                    ? "Aucun template publié pour cet événement"
-                    : "Remplissez les champs pour voir l'aperçu"}
-                </p>
+              <div className="flex h-72 items-center justify-center rounded-2xl border-2 border-dashed border-border/30 bg-white">
+                <div className="text-center">
+                  <ImageIcon className="mx-auto mb-2 h-8 w-8 text-muted-foreground/30" />
+                  <p className="text-[13px] text-muted-foreground/60">
+                    {templates.length === 0
+                      ? "Aucun template publié pour cet événement"
+                      : "Remplissez les champs pour voir l'aperçu"}
+                  </p>
+                </div>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t border-border/20 bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-5">
+          <div className="flex items-center justify-between text-[12px] text-muted-foreground/40">
+            <span>Propulsé par EventMediaKit</span>
+            <span>{org.name}</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

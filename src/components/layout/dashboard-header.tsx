@@ -16,10 +16,15 @@ export function DashboardHeader() {
   }
 
   return (
-    <header className="flex h-14 items-center justify-between border-b bg-white px-6">
+    <header className="flex h-[60px] items-center justify-between border-b border-border/50 bg-white/80 backdrop-blur-sm px-6">
       <div />
-      <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground">
-        <LogOut className="mr-2 h-4 w-4" />
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleLogout}
+        className="gap-2 text-[13px] font-medium text-muted-foreground/70 hover:text-foreground transition-colors"
+      >
+        <LogOut className="h-3.5 w-3.5" />
         Déconnexion
       </Button>
     </header>
