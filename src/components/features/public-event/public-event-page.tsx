@@ -363,9 +363,9 @@ export function PublicEventPage({
 
             {/* Split layout: form left + preview right */}
             {selectedTemplate && (
-              <div className="grid gap-8 lg:grid-cols-[1fr,auto]">
+              <div className="flex flex-col gap-8 md:flex-row">
                 {/* Left: variable fields */}
-                <div className="space-y-5">
+                <div className="flex-1 space-y-5 md:max-w-md">
                   <div>
                     <h3 className="mb-1 text-base font-bold tracking-tight">Personnalisez votre visuel</h3>
                     <p className="text-[13px] text-muted-foreground">
@@ -459,7 +459,7 @@ export function PublicEventPage({
                 </div>
 
                 {/* Right: preview sticky */}
-                <div className="lg:sticky lg:top-8 lg:self-start">
+                <div className="w-full flex-1 md:sticky md:top-8 md:self-start">
                   <div className="mb-2 flex items-center justify-between text-[12px]">
                     <span className="text-muted-foreground">Aperçu en direct</span>
                     <span className="font-medium">
