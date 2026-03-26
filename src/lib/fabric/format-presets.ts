@@ -26,10 +26,10 @@ export const FORMAT_PRESETS: Record<TemplateFormat, FormatPreset> = {
     height: 1080,
     ratio: "16:9",
   },
-  linkedin_banner: {
-    label: "Bannière LinkedIn",
-    width: 1584,
-    height: 396,
-    ratio: "4:1",
+  post_4x5: {
+    label: "Post (4:5)",
+    width: 1080,
+    height: 1350,
+    ratio: "4:5",
   },
 };

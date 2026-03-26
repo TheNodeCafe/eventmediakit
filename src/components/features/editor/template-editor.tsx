@@ -9,12 +9,15 @@ import { PropertiesPanel } from "./properties-panel";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/store/editor-store";
-import { Save, Eye } from "lucide-react";
-import type { VariableFieldDefinition } from "@/types";
+import { FORMAT_PRESETS } from "@/lib/fabric/format-presets";
+import type { TemplateFormat, VariableFieldDefinition } from "@/types";
+import { Save, Eye, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 interface TemplateEditorProps {
   templateId?: string;
   eventId: string;
+  backUrl?: string;
   initialName?: string;
   initialJson?: Record<string, unknown>;
   variableFields: VariableFieldDefinition[];
@@ -27,18 +30,27 @@ interface TemplateEditorProps {
   }) => Promise<void>;
 }
 
+const formats: { key: TemplateFormat; label: string }[] = [
+  { key: "square_1x1", label: "Carré" },
+  { key: "story_9x16", label: "Story" },
+  { key: "landscape_16x9", label: "Paysage" },
+  { key: "post_4x5", label: "Post 4:5" },
+];
+
 export function TemplateEditor({
+  eventId,
   initialName = "",
   initialJson,
   variableFields,
   onSave,
+  backUrl,
 }: TemplateEditorProps) {
   const canvasRef = useRef<Canvas | null>(null);
   const [name, setName] = useState(initialName);
   const [saving, setSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [layersKey, setLayersKey] = useState(0);
-  const { isDirty, setIsDirty, format, canvasWidth, canvasHeight } =
+  const { isDirty, setIsDirty, format, canvasWidth, canvasHeight, setFormat } =
     useEditorStore();
 
   const handleCanvasReady = useCallback((canvas: Canvas) => {
@@ -97,43 +109,70 @@ export function TemplateEditor({
   }
 
   return (
-    <div className="flex h-screen flex-col bg-white">
-      {/* Top bar */}
-      <div className="flex h-12 items-center justify-between border-b px-4">
-        <div className="flex items-center gap-3">
+    <div className="flex h-[calc(100vh-3.5rem)] flex-col bg-white">
+      {/* Top bar: name + formats + actions */}
+      <div className="flex h-11 shrink-0 items-center justify-between border-b px-3">
+        <div className="flex items-center gap-2">
+          <Link
+            href={backUrl ?? `/events/${eventId}/templates`}
+            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            title="Retour"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
           <Input
             value={name}
             onChange={(e) => { setName(e.target.value); setIsDirty(true); }}
             placeholder="Nom du template"
-            className="h-8 w-56 text-sm"
+            className="h-7 w-44 text-xs"
           />
+          {/* Format selector inline */}
+          <div className="flex items-center gap-1">
+            {formats.map((f) => {
+              const preset = FORMAT_PRESETS[f.key];
+              return (
+                <button
+                  key={f.key}
+                  onClick={() => setFormat(f.key, preset.width, preset.height)}
+                  className={`rounded px-2 py-1 text-[10px] font-medium transition-colors ${
+                    format === f.key
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <Button
             variant={previewMode ? "default" : "outline"}
             size="sm"
             onClick={togglePreview}
+            className="h-7 text-xs"
           >
-            <Eye className="mr-1.5 h-3.5 w-3.5" />
-            {previewMode ? "Quitter aperçu" : "Aperçu"}
+            <Eye className="mr-1 h-3 w-3" />
+            {previewMode ? "Quitter" : "Aperçu"}
           </Button>
-          <Button size="sm" onClick={handleSave} disabled={saving || !name.trim()}>
-            <Save className="mr-1.5 h-3.5 w-3.5" />
-            {saving ? "..." : "Enregistrer"}
+          <Button size="sm" onClick={handleSave} disabled={saving || !name.trim()} className="h-7 text-xs">
+            <Save className="mr-1 h-3 w-3" />
+            {saving ? "..." : "Sauver"}
             {isDirty && !saving && " *"}
           </Button>
         </div>
       </div>
 
-      {/* 3-panel layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left: Elements + Canvas settings */}
+      {/* 3-panel layout — takes remaining height */}
+      <div className="flex min-h-0 flex-1">
+        {/* Left: Elements */}
         {!previewMode && (
           <ElementsPanel canvas={canvasRef.current} onAdd={refreshLayers} />
         )}
 
         {/* Center: Canvas workspace */}
-        <div className="flex-1 overflow-auto bg-neutral-100">
+        <div className="min-h-0 flex-1 overflow-auto bg-neutral-100">
           <CanvasWrapper
             initialJson={initialJson}
             onCanvasReady={handleCanvasReady}
@@ -142,12 +181,16 @@ export function TemplateEditor({
 
         {/* Right: Properties + Layers */}
         {!previewMode && (
-          <div className="flex w-72 flex-col border-l bg-white">
-            <PropertiesPanel
-              canvas={canvasRef.current}
-              variableFields={variableFields}
-            />
-            <LayersPanel key={layersKey} canvas={canvasRef.current} />
+          <div className="flex w-64 min-h-0 flex-col border-l bg-white">
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <PropertiesPanel
+                canvas={canvasRef.current}
+                variableFields={variableFields}
+              />
+            </div>
+            <div className="h-48 shrink-0 overflow-y-auto">
+              <LayersPanel key={layersKey} canvas={canvasRef.current} />
+            </div>
           </div>
         )}
       </div>

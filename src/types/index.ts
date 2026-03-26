@@ -10,7 +10,7 @@ export type TemplateFormat =
   | "square_1x1"
   | "story_9x16"
   | "landscape_16x9"
-  | "linkedin_banner";
+  | "post_4x5";
 
 export type FieldType = "text" | "image" | "textarea";
 

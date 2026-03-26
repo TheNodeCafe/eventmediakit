@@ -2,9 +2,6 @@
 
 import { useRef } from "react";
 import type { Canvas } from "fabric";
-import { useEditorStore } from "@/store/editor-store";
-import { FORMAT_PRESETS } from "@/lib/fabric/format-presets";
-import type { TemplateFormat } from "@/types";
 import {
   generateObjectId,
   createRect,
@@ -37,7 +34,6 @@ const elements = [
 
 export function ElementsPanel({ canvas, onAdd }: ElementsPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { format, setFormat } = useEditorStore();
 
   async function handleAdd(action: string) {
     if (!canvas) return;
@@ -130,28 +126,21 @@ export function ElementsPanel({ canvas, onAdd }: ElementsPanelProps) {
     e.target.value = "";
   }
 
-  const formats: { key: TemplateFormat; label: string }[] = [
-    { key: "story_9x16", label: "Story" },
-    { key: "square_1x1", label: "Carré" },
-    { key: "landscape_16x9", label: "Paysage" },
-    { key: "linkedin_banner", label: "LinkedIn" },
-  ];
-
   return (
-    <div className="flex w-60 flex-col border-r bg-white">
+    <div className="flex w-52 shrink-0 flex-col border-r bg-white">
       {/* Elements grid */}
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto p-2">
         <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           Éléments
         </h3>
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="grid grid-cols-2 gap-1">
           {elements.map((el) => (
             <button
               key={el.id}
               onClick={() => handleAdd(el.action)}
-              className="flex flex-col items-center gap-1 rounded-lg border border-transparent p-2.5 text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-foreground"
+              className="flex flex-col items-center gap-1 rounded-lg border border-transparent p-2 text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-foreground"
             >
-              <el.icon className="h-5 w-5" />
+              <el.icon className="h-4 w-4" />
               <span className="text-[10px] font-medium">{el.label}</span>
             </button>
           ))}
@@ -166,57 +155,29 @@ export function ElementsPanel({ canvas, onAdd }: ElementsPanelProps) {
         onChange={handleImageUpload}
       />
 
-      {/* Canvas settings */}
-      <div className="border-t p-3">
-        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Canvas
-        </h3>
-        <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-[11px] text-muted-foreground">Format</label>
-            <div className="flex flex-wrap gap-1">
-              {formats.map((f) => (
-                <button
-                  key={f.key}
-                  onClick={() => {
-                    const preset = FORMAT_PRESETS[f.key];
-                    setFormat(f.key, preset.width, preset.height);
-                  }}
-                  className={`rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${
-                    format === f.key
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-muted-foreground">Fond</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                defaultValue="#ffffff"
-                onChange={(e) => {
-                  if (canvas) { canvas.backgroundColor = e.target.value; canvas.renderAll(); }
-                }}
-                className="h-7 w-7 cursor-pointer rounded border"
-              />
-              <input
-                type="text"
-                defaultValue="#ffffff"
-                onChange={(e) => {
-                  if (canvas && /^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
-                    canvas.backgroundColor = e.target.value;
-                    canvas.renderAll();
-                  }
-                }}
-                className="h-7 flex-1 rounded border px-2 font-mono text-[11px]"
-              />
-            </div>
-          </div>
+      {/* Background color only */}
+      <div className="shrink-0 border-t p-2">
+        <label className="mb-1 block text-[11px] text-muted-foreground">Fond du canvas</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            defaultValue="#ffffff"
+            onChange={(e) => {
+              if (canvas) { canvas.backgroundColor = e.target.value; canvas.renderAll(); }
+            }}
+            className="h-6 w-6 cursor-pointer rounded border"
+          />
+          <input
+            type="text"
+            defaultValue="#ffffff"
+            onChange={(e) => {
+              if (canvas && /^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
+                canvas.backgroundColor = e.target.value;
+                canvas.renderAll();
+              }
+            }}
+            className="h-6 flex-1 rounded border px-2 font-mono text-[10px]"
+          />
         </div>
       </div>
     </div>
