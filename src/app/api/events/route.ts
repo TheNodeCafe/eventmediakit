@@ -88,10 +88,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    const suffix = Math.random().toString(36).substring(2, 6);
     const slug = body.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+      .replace(/^-|-$/g, "")
+      + "-" + suffix;
 
     const { data: event, error } = await admin
       .from("events")
