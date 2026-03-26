@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useEvent } from "@/hooks/use-events";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,6 +34,7 @@ interface Branding {
   show_description?: boolean;
   show_org_name?: boolean;
   show_header_overlay?: boolean;
+  header_image_position?: string; // "center", "top", "bottom", or "Xpx Ypx"
 }
 
 export default function EventSettingsPage({
@@ -296,27 +297,31 @@ export default function EventSettingsPage({
               <div className="space-y-1.5">
                 <Label className="text-xs">Image de fond du header</Label>
                 <p className="text-[11px] text-muted-foreground">
-                  Remplace la couleur unie par une image
+                  Remplace la couleur unie. Glissez pour repositionner.
                 </p>
                 {branding.header_image_url ? (
-                  <div className="relative overflow-hidden rounded-lg border">
-                    <img
-                      src={branding.header_image_url}
-                      alt="Header"
-                      className="h-24 w-full object-cover"
+                  <div className="space-y-2">
+                    <HeaderImagePositioner
+                      imageUrl={branding.header_image_url}
+                      position={branding.header_image_position as string | undefined}
+                      onPositionChange={(pos) => updateBranding("header_image_position", pos)}
                     />
-                    <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity hover:opacity-100">
+                    <div className="flex gap-2">
                       <Button
                         size="sm"
-                        variant="secondary"
+                        variant="outline"
+                        className="flex-1"
                         onClick={() => handleImageUpload("header_image_url")}
                       >
                         Changer
                       </Button>
                       <Button
                         size="sm"
-                        variant="secondary"
-                        onClick={() => updateBranding("header_image_url", undefined)}
+                        variant="ghost"
+                        onClick={() => {
+                          updateBranding("header_image_url", undefined);
+                          updateBranding("header_image_position", undefined);
+                        }}
                       >
                         Retirer
                       </Button>
@@ -386,7 +391,7 @@ export default function EventSettingsPage({
                         ? {
                             backgroundImage: `url(${branding.header_image_url})`,
                             backgroundSize: "cover",
-                            backgroundPosition: "center",
+                            backgroundPosition: branding.header_image_position || "center",
                           }
                         : { backgroundColor: primaryColor }
                     }
@@ -471,6 +476,73 @@ export default function EventSettingsPage({
             </CardContent>
           </Card>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function HeaderImagePositioner({
+  imageUrl,
+  position,
+  onPositionChange,
+}: {
+  imageUrl: string;
+  position?: string;
+  onPositionChange: (pos: string) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const [yPercent, setYPercent] = useState(() => {
+    if (!position || position === "center") return 50;
+    const match = position.match(/center (\d+)%/);
+    return match ? parseInt(match[1]) : 50;
+  });
+  const dragStartY = useRef(0);
+  const startPercent = useRef(0);
+
+  function handleMouseDown(e: React.MouseEvent) {
+    e.preventDefault();
+    setDragging(true);
+    dragStartY.current = e.clientY;
+    startPercent.current = yPercent;
+  }
+
+  function handleMouseMove(e: React.MouseEvent) {
+    if (!dragging || !containerRef.current) return;
+    const containerHeight = containerRef.current.clientHeight;
+    const delta = e.clientY - dragStartY.current;
+    const percentDelta = (delta / containerHeight) * 100;
+    const newPercent = Math.max(0, Math.min(100, startPercent.current + percentDelta));
+    setYPercent(newPercent);
+  }
+
+  function handleMouseUp() {
+    if (dragging) {
+      setDragging(false);
+      onPositionChange(`center ${Math.round(yPercent)}%`);
+    }
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative h-28 cursor-grab overflow-hidden rounded-lg border active:cursor-grabbing"
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
+      <img
+        src={imageUrl}
+        alt="Header"
+        className="h-full w-full object-cover pointer-events-none"
+        style={{ objectPosition: `center ${yPercent}%` }}
+        draggable={false}
+      />
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-2 py-1.5">
+        <p className="text-[10px] text-white/80">
+          {dragging ? "Relâchez pour appliquer" : "Glissez verticalement pour repositionner"}
+        </p>
       </div>
     </div>
   );

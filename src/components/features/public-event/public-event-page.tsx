@@ -245,7 +245,7 @@ export function PublicEventPage({
         className="relative overflow-hidden"
         style={
           headerImageUrl
-            ? { backgroundImage: `url(${headerImageUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+            ? { backgroundImage: `url(${headerImageUrl})`, backgroundSize: "cover", backgroundPosition: (b?.header_image_position as string) || "center" }
             : { backgroundColor: primaryColor ?? "#1e1b4b" }
         }
       >
