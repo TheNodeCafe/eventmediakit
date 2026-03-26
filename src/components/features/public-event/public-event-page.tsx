@@ -92,6 +92,7 @@ export function PublicEventPage({
   const [activeCategory, setActiveCategory] = useState<string | null>(
     categories[0]?.id ?? null
   );
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [downloading, setDownloading] = useState<Record<string, boolean>>({});
   const [editingImage, setEditingImage] = useState<string | null>(null);
@@ -120,10 +121,16 @@ export function PublicEventPage({
         )
       : templates;
 
-  // Only show fields used by visible templates
+  // Auto-select first template if none selected
+  const selectedTemplate = visibleTemplates.find((t) => t.id === selectedTemplateId)
+    ?? visibleTemplates[0] ?? null;
+
+  // Only show fields used by the selected template (not all visible)
   const usedFields = useMemo(
-    () => getUsedVariableFields(visibleTemplates, fieldDefinitions),
-    [visibleTemplates, fieldDefinitions]
+    () => selectedTemplate
+      ? getUsedVariableFields([selectedTemplate], fieldDefinitions)
+      : [],
+    [selectedTemplate, fieldDefinitions]
   );
 
   function updateField(name: string, value: string) {
@@ -309,149 +316,170 @@ export function PublicEventPage({
 
       {/* Main content */}
       <div className="mx-auto max-w-6xl px-6 py-8">
-        {/* Form fields section */}
-        {usedFields.length > 0 && (
-          <div className="mb-10">
-            <h2 className="mb-1 text-lg font-bold tracking-tight">Personnalisez vos visuels</h2>
-            <p className="mb-6 text-[13px] text-muted-foreground">Remplissez les informations ci-dessous, les visuels se mettront à jour en temps réel</p>
+        {visibleTemplates.length > 0 ? (
+          <>
+            {/* Format selector — top */}
+            <div className="mb-8">
+              <h2 className="mb-1 text-lg font-bold tracking-tight">Choisissez votre format</h2>
+              <p className="mb-4 text-[13px] text-muted-foreground">Sélectionnez un format puis personnalisez votre visuel</p>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {usedFields.map((field) => (
-                <div key={field.id} className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">
-                    {field.label}
-                    {field.required && <span className="text-destructive"> *</span>}
-                  </Label>
+              <div className="flex flex-wrap gap-3">
+                {visibleTemplates.map((template) => {
+                  const preset = FORMAT_PRESETS[template.format as TemplateFormat];
+                  const isActive = selectedTemplateId === template.id;
+                  return (
+                    <button
+                      key={template.id}
+                      onClick={() => setSelectedTemplateId(template.id)}
+                      className={cn(
+                        "flex flex-col items-center rounded-xl border-2 p-3 transition-all",
+                        isActive
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border/40 bg-white hover:border-border"
+                      )}
+                    >
+                      {template.thumbnail_url ? (
+                        <img
+                          src={template.thumbnail_url}
+                          alt=""
+                          className="mb-2 h-16 w-auto rounded object-contain"
+                        />
+                      ) : (
+                        <div
+                          className="mb-2 rounded bg-muted/50"
+                          style={{
+                            width: 56,
+                            height: Math.min(56 * (template.height / template.width), 72),
+                          }}
+                        />
+                      )}
+                      <span className="text-[12px] font-semibold">{preset?.label.split(" (")[0] ?? template.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{template.width}x{template.height}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-                  {field.field_type === "textarea" ? (
-                    <Textarea
-                      value={fieldValues[field.name] ?? ""}
-                      onChange={(e) => updateField(field.name, e.target.value)}
-                      placeholder={`Saisissez votre ${field.label.toLowerCase()}`}
-                      className="min-h-[80px] rounded-xl bg-white shadow-sm resize-none"
-                    />
-                  ) : field.field_type === "image" ? (
-                    <div>
-                      {fieldValues[field.name] && editingImage !== field.name ? (
-                        <div className="flex flex-col items-center rounded-xl border bg-white p-3">
-                          <img src={fieldValues[field.name]} alt="" className="mb-2 h-24 rounded-lg object-contain" />
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => setEditingImage(field.name)}>
-                              Recadrer
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => { updateField(field.name, ""); setEditingImage(null); }}>
-                              Retirer
-                            </Button>
-                          </div>
-                        </div>
-                      ) : fieldValues[field.name] && editingImage === field.name ? (
-                        <div className="rounded-xl border bg-white p-3">
-                          <ImageCropEditor
-                            imageUrl={fieldValues[field.name]}
-                            onConfirm={(url) => { updateField(field.name, url); setEditingImage(null); }}
-                            onRemove={() => { updateField(field.name, ""); setEditingImage(null); }}
-                          />
+            {/* Split layout: form left + preview right */}
+            {selectedTemplate && (
+              <div className="grid gap-8 lg:grid-cols-[1fr,auto]">
+                {/* Left: variable fields */}
+                <div className="space-y-5">
+                  <div>
+                    <h3 className="mb-1 text-base font-bold tracking-tight">Personnalisez votre visuel</h3>
+                    <p className="text-[13px] text-muted-foreground">
+                      Remplissez les champs, l&apos;aperçu se met à jour en temps réel
+                    </p>
+                  </div>
+
+                  {usedFields.map((field) => (
+                    <div key={field.id} className="space-y-1.5">
+                      <Label className="text-[13px] font-semibold">
+                        {field.label}
+                        {field.required && <span className="text-destructive"> *</span>}
+                      </Label>
+
+                      {field.field_type === "textarea" ? (
+                        <Textarea
+                          value={fieldValues[field.name] ?? ""}
+                          onChange={(e) => updateField(field.name, e.target.value)}
+                          placeholder={`Saisissez votre ${field.label.toLowerCase()}`}
+                          className="min-h-[80px] rounded-xl bg-white shadow-sm resize-none"
+                        />
+                      ) : field.field_type === "image" ? (
+                        <div>
+                          {fieldValues[field.name] && editingImage !== field.name ? (
+                            <div className="flex flex-col items-center rounded-xl border bg-white p-3">
+                              <img src={fieldValues[field.name]} alt="" className="mb-2 h-24 rounded-lg object-contain" />
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm" onClick={() => setEditingImage(field.name)}>Recadrer</Button>
+                                <Button variant="ghost" size="sm" onClick={() => { updateField(field.name, ""); setEditingImage(null); }}>Retirer</Button>
+                              </div>
+                            </div>
+                          ) : fieldValues[field.name] && editingImage === field.name ? (
+                            <div className="rounded-xl border bg-white p-3">
+                              <ImageCropEditor
+                                imageUrl={fieldValues[field.name]}
+                                onConfirm={(url) => { updateField(field.name, url); setEditingImage(null); }}
+                                onRemove={() => { updateField(field.name, ""); setEditingImage(null); }}
+                              />
+                            </div>
+                          ) : (
+                            <label className="group flex cursor-pointer flex-col items-center rounded-xl border-2 border-dashed bg-white p-5 transition-all hover:border-primary/40">
+                              <ImageIcon className="mb-2 h-6 w-6 text-muted-foreground transition-colors group-hover:text-primary" />
+                              <span className="text-[12px] font-medium text-muted-foreground">Cliquez ou déposez une image</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const url = URL.createObjectURL(file);
+                                    updateField(field.name, url);
+                                    setEditingImage(field.name);
+                                  }
+                                }}
+                              />
+                            </label>
+                          )}
                         </div>
                       ) : (
-                        <label className="group flex cursor-pointer flex-col items-center rounded-xl border-2 border-dashed bg-white p-5 transition-all hover:border-primary/40">
-                          <ImageIcon className="mb-2 h-6 w-6 text-muted-foreground transition-colors group-hover:text-primary" />
-                          <span className="text-[12px] font-medium text-muted-foreground">
-                            Cliquez ou déposez une image
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                const url = URL.createObjectURL(file);
-                                updateField(field.name, url);
-                                setEditingImage(field.name);
-                              }
-                            }}
-                          />
-                        </label>
+                        <Input
+                          value={fieldValues[field.name] ?? ""}
+                          onChange={(e) => updateField(field.name, e.target.value)}
+                          placeholder={`Saisissez votre ${field.label.toLowerCase()}`}
+                          className="h-11 rounded-xl bg-white shadow-sm"
+                        />
                       )}
                     </div>
-                  ) : (
-                    <Input
-                      value={fieldValues[field.name] ?? ""}
-                      onChange={(e) => updateField(field.name, e.target.value)}
-                      placeholder={`Saisissez votre ${field.label.toLowerCase()}`}
-                      className="h-11 rounded-xl bg-white shadow-sm"
-                    />
-                  )}
+                  ))}
+
+                  {/* Download button */}
+                  <Button
+                    size="lg"
+                    className="w-full rounded-xl text-[14px] font-semibold shadow-md"
+                    style={primaryColor ? { backgroundColor: primaryColor } : undefined}
+                    onClick={() => handleDownload(selectedTemplate)}
+                    disabled={downloading[selectedTemplate.id]}
+                  >
+                    {downloading[selectedTemplate.id] ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Génération en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 h-4 w-4" />
+                        Télécharger le visuel
+                      </>
+                    )}
+                  </Button>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Templates grid — all visible at once */}
-        {visibleTemplates.length > 0 && (
-          <div>
-            <h2 className="mb-1 text-lg font-bold tracking-tight">Choisissez votre format</h2>
-            <p className="mb-6 text-[13px] text-muted-foreground">Téléchargez les visuels dans le format de votre choix</p>
-
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {visibleTemplates.map((template) => {
-                const preset = FORMAT_PRESETS[template.format as TemplateFormat];
-                const isDownloading = downloading[template.id];
-                return (
-                  <Card key={template.id} className="overflow-hidden border-border/40">
-                    {/* Card header */}
-                    <div className="flex items-center justify-between border-b px-4 py-2.5">
-                      <span className="text-[13px] font-semibold">{preset?.label.split(" (")[0] ?? template.name}</span>
-                      <span className="rounded-full bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-                        {template.width}x{template.height}
-                      </span>
-                    </div>
-
-                    {/* Preview */}
-                    <CardContent className="p-3">
-                      <div className="mb-3 overflow-hidden rounded-lg border">
-                        <TemplatePreview
-                          canvasJson={template.canvas_json}
-                          width={template.width}
-                          height={template.height}
-                          fieldValues={fieldValues}
-                        />
-                      </div>
-
-                      {/* Download */}
-                      <button
-                        onClick={() => handleDownload(template)}
-                        disabled={isDownloading}
-                        className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-[13px] font-semibold transition-all hover:opacity-90 disabled:opacity-50"
-                        style={{ color: primaryColor ?? "#6366f1" }}
-                      >
-                        {isDownloading ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Génération...
-                          </>
-                        ) : (
-                          <>
-                            Téléchargez
-                            <div
-                              className="flex h-7 w-7 items-center justify-center rounded-full text-white"
-                              style={{ backgroundColor: primaryColor ?? "#6366f1" }}
-                            >
-                              <Download className="h-3.5 w-3.5" />
-                            </div>
-                          </>
-                        )}
-                      </button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {visibleTemplates.length === 0 && (
+                {/* Right: preview sticky */}
+                <div className="lg:sticky lg:top-8 lg:self-start">
+                  <div className="mb-2 flex items-center justify-between text-[12px]">
+                    <span className="text-muted-foreground">Aperçu en direct</span>
+                    <span className="font-medium">
+                      {FORMAT_PRESETS[selectedTemplate.format as TemplateFormat]?.label ?? selectedTemplate.format}
+                    </span>
+                  </div>
+                  <div className="overflow-hidden rounded-xl border shadow-sm">
+                    <TemplatePreview
+                      key={selectedTemplate.id}
+                      canvasJson={selectedTemplate.canvas_json}
+                      width={selectedTemplate.width}
+                      height={selectedTemplate.height}
+                      fieldValues={fieldValues}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
           <div className="flex h-48 items-center justify-center rounded-2xl border-2 border-dashed">
             <p className="text-muted-foreground">Aucun template publié pour cet événement</p>
           </div>
