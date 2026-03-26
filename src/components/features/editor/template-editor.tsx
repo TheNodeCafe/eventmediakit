@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/store/editor-store";
 import { FORMAT_PRESETS } from "@/lib/fabric/format-presets";
+import { CUSTOM_PROPERTIES } from "@/lib/fabric/variable-fields";
 import type { TemplateFormat, VariableFieldDefinition, ParticipantCategory } from "@/types";
-import { Save, Eye, ArrowLeft, Tag } from "lucide-react";
+import { Save, Eye, ArrowLeft, Tag, CheckCircle, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
 interface TemplateEditorProps {
@@ -54,6 +55,8 @@ export function TemplateEditor({
   const [name, setName] = useState(initialName);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(initialCategoryIds);
   const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
+  const [saveError, setSaveError] = useState("");
   const [previewMode, setPreviewMode] = useState(false);
   const [layersKey, setLayersKey] = useState(0);
   const { isDirty, setIsDirty, format, canvasWidth, canvasHeight, setFormat } =
@@ -71,8 +74,18 @@ export function TemplateEditor({
     const canvas = canvasRef.current;
     if (!canvas || !name.trim()) return;
     setSaving(true);
+    setSaveStatus("idle");
+    setSaveError("");
+
     try {
-      const json = canvas.toJSON() as Record<string, unknown>;
+      // Serialize with custom properties (variableField, id)
+      // Fabric.js v7 types don't expose the parameter but it works at runtime
+      const json = (canvas as unknown as { toJSON: (props: string[]) => Record<string, unknown> }).toJSON(CUSTOM_PROPERTIES);
+
+      // Verify the JSON has objects
+      const objects = (json as { objects?: unknown[] }).objects;
+      console.log(`[editor] Saving template: ${objects?.length ?? 0} objects, format: ${format}`);
+
       await onSave({
         name: name.trim(),
         canvas_json: json,
@@ -82,6 +95,12 @@ export function TemplateEditor({
         category_ids: selectedCategoryIds,
       });
       setIsDirty(false);
+      setSaveStatus("success");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch (err) {
+      console.error("[editor] Save failed:", err);
+      setSaveStatus("error");
+      setSaveError(err instanceof Error ? err.message : "Erreur de sauvegarde");
     } finally {
       setSaving(false);
     }
@@ -200,35 +219,64 @@ export function TemplateEditor({
             size="sm"
             onClick={togglePreview}
             className={`h-7 rounded-lg text-[12px] font-medium ${
-              previewMode
-                ? ""
-                : "text-muted-foreground hover:text-foreground"
+              previewMode ? "" : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Eye className="mr-1.5 h-3.5 w-3.5" />
             {previewMode ? "Quitter" : "Aperçu"}
           </Button>
+
+          {/* Save button with status */}
           <Button
             size="sm"
             onClick={handleSave}
             disabled={saving || !name.trim()}
-            className="h-7 rounded-lg text-[12px] font-medium shadow-none"
+            className={`h-7 rounded-lg text-[12px] font-medium shadow-none ${
+              saveStatus === "success" ? "bg-emerald-500 hover:bg-emerald-500" :
+              saveStatus === "error" ? "bg-destructive hover:bg-destructive" : ""
+            }`}
           >
-            <Save className="mr-1.5 h-3.5 w-3.5" />
-            {saving ? "..." : "Sauver"}
-            {isDirty && !saving && " *"}
+            {saving ? (
+              <>
+                <svg className="mr-1.5 h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                Sauvegarde...
+              </>
+            ) : saveStatus === "success" ? (
+              <>
+                <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
+                Sauvegardé
+              </>
+            ) : saveStatus === "error" ? (
+              <>
+                <AlertTriangle className="mr-1.5 h-3.5 w-3.5" />
+                Erreur
+              </>
+            ) : (
+              <>
+                <Save className="mr-1.5 h-3.5 w-3.5" />
+                Sauver{isDirty && " *"}
+              </>
+            )}
           </Button>
         </div>
       </div>
 
+      {/* Error banner */}
+      {saveStatus === "error" && saveError && (
+        <div className="shrink-0 bg-destructive/10 px-4 py-2 text-center text-[12px] font-medium text-destructive">
+          {saveError}
+        </div>
+      )}
+
       {/* 3-panel layout */}
       <div className="flex min-h-0 flex-1">
-        {/* Left: Elements */}
         {!previewMode && (
           <ElementsPanel canvas={canvasRef.current} onAdd={refreshLayers} />
         )}
 
-        {/* Center: Canvas workspace */}
         <div className="min-h-0 flex-1 overflow-auto bg-[#e8eaed]">
           <CanvasWrapper
             initialJson={initialJson}
@@ -236,16 +284,15 @@ export function TemplateEditor({
           />
         </div>
 
-        {/* Right: Properties + Layers */}
         {!previewMode && (
-          <div className="flex w-[272px] min-h-0 flex-col border-l border-black/[0.06] bg-white">
+          <div className="flex w-64 min-h-0 flex-col border-l border-black/[0.06] bg-white">
             <div className="min-h-0 flex-1 overflow-y-auto">
               <PropertiesPanel
                 canvas={canvasRef.current}
                 variableFields={variableFields}
               />
             </div>
-            <div className="h-52 shrink-0 overflow-y-auto border-t border-black/[0.06]">
+            <div className="h-48 shrink-0 overflow-y-auto border-t border-black/[0.06]">
               <LayersPanel key={layersKey} canvas={canvasRef.current} />
             </div>
           </div>
