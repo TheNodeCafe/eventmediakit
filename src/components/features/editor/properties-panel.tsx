@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import type { Canvas, FabricObject, Textbox } from "fabric";
+import type { Canvas, FabricObject, Textbox, Gradient } from "fabric";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -22,6 +21,7 @@ import {
   AlignCenter,
   AlignRight,
   Tag,
+  RotateCw,
 } from "lucide-react";
 
 interface PropertiesPanelProps {
@@ -31,127 +31,168 @@ interface PropertiesPanelProps {
 
 interface ObjectProps {
   type: string;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  scaleX: number;
+  scaleY: number;
+  angle: number;
   fill: string;
+  fillType: "solid" | "gradient";
+  gradientColor1?: string;
+  gradientColor2?: string;
   opacity: number;
+  rx?: number;
+  ry?: number;
+  stroke?: string;
+  strokeWidth?: number;
   fontSize?: number;
   fontFamily?: string;
   fontWeight?: string;
   fontStyle?: string;
   underline?: boolean;
   textAlign?: string;
-  text?: string;
+  lineHeight?: number;
+  charSpacing?: number;
   variableField: string;
 }
 
-export function PropertiesPanel({
-  canvas,
-  variableFields,
-}: PropertiesPanelProps) {
+const FONTS = [
+  "Arial", "Helvetica", "Inter", "Georgia", "Times New Roman",
+  "Courier New", "Verdana", "Impact", "Trebuchet MS", "Tahoma",
+  "Comic Sans MS", "Palatino",
+];
+
+export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps) {
   const { selectedObjectId } = useEditorStore();
   const [props, setProps] = useState<ObjectProps | null>(null);
 
   const syncProps = useCallback(() => {
-    if (!canvas || !selectedObjectId) {
-      setProps(null);
-      return;
-    }
-    const obj = canvas
-      .getObjects()
-      .find(
-        (o) => (o as FabricObject & { id?: string }).id === selectedObjectId
-      );
-    if (!obj) {
-      setProps(null);
-      return;
-    }
+    if (!canvas || !selectedObjectId) { setProps(null); return; }
+    const obj = canvas.getObjects().find(
+      (o) => (o as FabricObject & { id?: string }).id === selectedObjectId
+    );
+    if (!obj) { setProps(null); return; }
 
-    const typed = obj as FabricObject & {
-      id?: string;
-      fontSize?: number;
-      fontFamily?: string;
-      fontWeight?: string;
-      fontStyle?: string;
-      underline?: boolean;
-      textAlign?: string;
-      text?: string;
-      [VARIABLE_FIELD_PROPERTY]?: string;
-    };
+    const t = obj as FabricObject & Record<string, unknown>;
+    const fill = t.fill;
+    let fillType: "solid" | "gradient" = "solid";
+    let gradientColor1 = "#6366f1";
+    let gradientColor2 = "#a855f7";
+    let solidFill = "#000000";
+
+    if (fill && typeof fill === "object" && "colorStops" in fill) {
+      fillType = "gradient";
+      const stops = (fill as Gradient<"linear">).colorStops ?? [];
+      gradientColor1 = (stops[0]?.color as string) ?? "#6366f1";
+      gradientColor2 = (stops[1]?.color as string) ?? "#a855f7";
+    } else {
+      solidFill = (fill as string) ?? "#000000";
+    }
 
     setProps({
       type: (obj.type ?? "object") as string,
-      fill: (typed.fill as string) ?? "#000000",
-      opacity: typed.opacity ?? 1,
-      fontSize: typed.fontSize,
-      fontFamily: typed.fontFamily,
-      fontWeight: typed.fontWeight,
-      fontStyle: typed.fontStyle,
-      underline: typed.underline,
-      textAlign: typed.textAlign,
-      text: typed.text,
-      variableField: typed[VARIABLE_FIELD_PROPERTY] ?? "",
+      left: Math.round(obj.left ?? 0),
+      top: Math.round(obj.top ?? 0),
+      width: Math.round((obj.width ?? 0) * (obj.scaleX ?? 1)),
+      height: Math.round((obj.height ?? 0) * (obj.scaleY ?? 1)),
+      scaleX: obj.scaleX ?? 1,
+      scaleY: obj.scaleY ?? 1,
+      angle: Math.round(obj.angle ?? 0),
+      fill: solidFill,
+      fillType,
+      gradientColor1,
+      gradientColor2,
+      opacity: obj.opacity ?? 1,
+      rx: (t.rx as number) ?? 0,
+      ry: (t.ry as number) ?? 0,
+      stroke: (obj.stroke as string) ?? "",
+      strokeWidth: obj.strokeWidth ?? 0,
+      fontSize: t.fontSize as number | undefined,
+      fontFamily: t.fontFamily as string | undefined,
+      fontWeight: t.fontWeight as string | undefined,
+      fontStyle: t.fontStyle as string | undefined,
+      underline: t.underline as boolean | undefined,
+      textAlign: t.textAlign as string | undefined,
+      lineHeight: t.lineHeight as number | undefined,
+      charSpacing: t.charSpacing as number | undefined,
+      variableField: (t[VARIABLE_FIELD_PROPERTY] as string) ?? "",
     });
   }, [canvas, selectedObjectId]);
 
-  useEffect(() => {
-    syncProps();
-  }, [syncProps]);
+  useEffect(() => { syncProps(); }, [syncProps]);
 
   useEffect(() => {
     if (!canvas) return;
-    const handler = () => syncProps();
-    canvas.on("selection:created", handler);
-    canvas.on("selection:updated", handler);
-    canvas.on("selection:cleared", handler);
-    canvas.on("object:modified", handler);
+    const h = () => syncProps();
+    canvas.on("selection:created", h);
+    canvas.on("selection:updated", h);
+    canvas.on("selection:cleared", h);
+    canvas.on("object:modified", h);
+    canvas.on("object:scaling", h);
+    canvas.on("object:rotating", h);
+    canvas.on("object:moving", h);
     return () => {
-      canvas.off("selection:created", handler);
-      canvas.off("selection:updated", handler);
-      canvas.off("selection:cleared", handler);
-      canvas.off("object:modified", handler);
+      canvas.off("selection:created", h);
+      canvas.off("selection:updated", h);
+      canvas.off("selection:cleared", h);
+      canvas.off("object:modified", h);
+      canvas.off("object:scaling", h);
+      canvas.off("object:rotating", h);
+      canvas.off("object:moving", h);
     };
   }, [canvas, syncProps]);
 
-  function getActiveObject() {
+  function getObj() {
     if (!canvas) return null;
-    return canvas.getActiveObject() as
-      | (FabricObject & Record<string, unknown>)
-      | null;
+    return canvas.getActiveObject() as (FabricObject & Record<string, unknown>) | null;
   }
 
-  function updateProp(key: string, value: unknown) {
-    const obj = getActiveObject();
+  function update(key: string, value: unknown) {
+    const obj = getObj();
     if (!obj) return;
-    obj.set(key as keyof typeof obj, value as never);
+    obj.set(key as never, value as never);
     canvas?.renderAll();
     syncProps();
     useEditorStore.getState().setIsDirty(true);
   }
 
-  function handleVariableFieldChange(value: string | null) {
+  function updateGradient(color1: string, color2: string) {
+    const obj = getObj();
+    if (!obj || !canvas) return;
+    import("fabric").then(({ Gradient }) => {
+      obj.set("fill", new Gradient({
+        type: "linear",
+        coords: { x1: 0, y1: 0, x2: (obj.width ?? 200), y2: (obj.height ?? 200) },
+        colorStops: [
+          { offset: 0, color: color1 },
+          { offset: 1, color: color2 },
+        ],
+      }));
+      canvas.renderAll();
+      syncProps();
+      useEditorStore.getState().setIsDirty(true);
+    });
+  }
+
+  function handleVariableChange(value: string | null) {
     if (!value) return;
-    const obj = getActiveObject();
+    const obj = getObj();
     if (!obj) return;
-    const fieldValue = value === "__none__" ? "" : value;
-    (obj as unknown as Record<string, unknown>)[VARIABLE_FIELD_PROPERTY] =
-      fieldValue;
-
-    // Update text placeholder
-    if (obj.text !== undefined && fieldValue) {
-      const fieldDef = variableFields.find((f) => f.name === fieldValue);
-      if (fieldDef) {
-        (obj as unknown as Textbox).set("text", `{{${fieldDef.label}}}`);
-      }
+    const fv = value === "__none__" ? "" : value;
+    (obj as unknown as Record<string, unknown>)[VARIABLE_FIELD_PROPERTY] = fv;
+    if (obj.text !== undefined && fv) {
+      const fd = variableFields.find((f) => f.name === fv);
+      if (fd) (obj as unknown as Textbox).set("text", `{{${fd.label}}}`);
     }
-
     canvas?.renderAll();
     syncProps();
     useEditorStore.getState().setIsDirty(true);
   }
 
-  const isText =
-    props?.type === "textbox" ||
-    props?.type === "i-text" ||
-    props?.type === "text";
+  const isText = props?.type === "textbox" || props?.type === "i-text";
+  const isRect = props?.type === "rect";
 
   if (!props) {
     return (
@@ -173,196 +214,196 @@ export function PropertiesPanel({
       </h3>
 
       <div className="space-y-4">
-        {/* ===== VARIABLE ZONE (top priority) ===== */}
+        {/* === VARIABLE ZONE === */}
         {variableFields.length > 0 && (
-          <div
-            className={`rounded-lg border p-2.5 ${
-              props.variableField
-                ? "border-orange-300 bg-orange-50"
-                : "border-dashed border-muted-foreground/30"
-            }`}
+          <Section
+            className={props.variableField ? "border-orange-300 bg-orange-50" : "border-dashed border-muted-foreground/30"}
           >
             <div className="mb-1.5 flex items-center gap-1.5">
               <Tag className="h-3.5 w-3.5 text-orange-500" />
-              <span className="text-[11px] font-semibold text-orange-600">
-                Zone variable
-              </span>
+              <span className="text-[11px] font-semibold text-orange-600">Zone variable</span>
             </div>
-            <Select
-              value={props.variableField || "__none__"}
-              onValueChange={handleVariableFieldChange}
-            >
-              <SelectTrigger className="h-7 text-xs">
-                <SelectValue placeholder="Aucune" />
-              </SelectTrigger>
+            <Select value={props.variableField || "__none__"} onValueChange={handleVariableChange}>
+              <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">
-                  Élément fixe (non modifiable)
-                </SelectItem>
-                {variableFields.map((field) => (
-                  <SelectItem key={field.id} value={field.name}>
-                    {field.label} — {field.field_type}
-                  </SelectItem>
+                <SelectItem value="__none__">Élément fixe</SelectItem>
+                {variableFields.map((f) => (
+                  <SelectItem key={f.id} value={f.name}>{f.label} — {f.field_type}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {props.variableField && (
-              <p className="mt-1 text-[10px] text-orange-500">
-                Les visiteurs rempliront ce champ
-              </p>
+              <p className="mt-1 text-[10px] text-orange-500">Rempli par le visiteur</p>
             )}
-            {variableFields.length === 0 && (
-              <p className="mt-1 text-[10px] text-muted-foreground">
-                Ajoutez des champs variables dans les paramètres de
-                l&apos;événement
-              </p>
-            )}
-          </div>
+          </Section>
         )}
 
-        {/* ===== TEXT CONTROLS ===== */}
+        {/* === POSITION & SIZE === */}
+        <div>
+          <SectionLabel>Position & Taille</SectionLabel>
+          <div className="grid grid-cols-2 gap-1.5">
+            <NumInput label="X" value={props.left} onChange={(v) => update("left", v)} />
+            <NumInput label="Y" value={props.top} onChange={(v) => update("top", v)} />
+            <NumInput label="L" value={props.width} onChange={(v) => {
+              const obj = getObj();
+              if (obj) { obj.set("scaleX", v / (obj.width ?? 1)); canvas?.renderAll(); syncProps(); }
+            }} />
+            <NumInput label="H" value={props.height} onChange={(v) => {
+              const obj = getObj();
+              if (obj) { obj.set("scaleY", v / (obj.height ?? 1)); canvas?.renderAll(); syncProps(); }
+            }} />
+          </div>
+        </div>
+
+        {/* === ROTATION === */}
+        <div>
+          <SectionLabel>Rotation</SectionLabel>
+          <div className="flex items-center gap-2">
+            <RotateCw className="h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              type="number"
+              value={props.angle}
+              onChange={(e) => update("angle", parseInt(e.target.value) || 0)}
+              className="h-7 w-20 text-center text-xs"
+              min={0}
+              max={360}
+            />
+            <span className="text-[11px] text-muted-foreground">°</span>
+            <div className="flex gap-0.5">
+              {[0, 45, 90, 180, 270].map((a) => (
+                <button
+                  key={a}
+                  onClick={() => update("angle", a)}
+                  className={`rounded px-1.5 py-0.5 text-[10px] transition-colors ${
+                    props.angle === a ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {a}°
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* === TEXT CONTROLS === */}
         {isText && (
           <div className="space-y-2">
-            <label className="text-[11px] font-medium text-muted-foreground">
-              Texte
-            </label>
-
-            {/* Font family + size */}
+            <SectionLabel>Texte</SectionLabel>
             <div className="flex gap-1.5">
-              <Select
-                value={props.fontFamily ?? "Arial"}
-                onValueChange={(v) => v && updateProp("fontFamily", v)}
-              >
-                <SelectTrigger className="h-7 flex-1 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
+              <Select value={props.fontFamily ?? "Arial"} onValueChange={(v) => v && update("fontFamily", v)}>
+                <SelectTrigger className="h-7 flex-1 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {[
-                    "Arial",
-                    "Helvetica",
-                    "Inter",
-                    "Georgia",
-                    "Times New Roman",
-                    "Courier New",
-                    "Verdana",
-                    "Impact",
-                    "Trebuchet MS",
-                  ].map((font) => (
-                    <SelectItem key={font} value={font}>
-                      <span style={{ fontFamily: font }}>{font}</span>
-                    </SelectItem>
+                  {FONTS.map((f) => (
+                    <SelectItem key={f} value={f}><span style={{ fontFamily: f }}>{f}</span></SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <Input
                 type="number"
                 value={props.fontSize ?? 16}
-                onChange={(e) =>
-                  updateProp("fontSize", parseInt(e.target.value) || 16)
-                }
+                onChange={(e) => update("fontSize", parseInt(e.target.value) || 16)}
                 className="h-7 w-16 text-center text-xs"
               />
             </div>
-
-            {/* Bold / Italic / Underline / Alignment */}
+            {/* Style buttons */}
             <div className="flex items-center gap-0.5">
-              <button
-                onClick={() =>
-                  updateProp(
-                    "fontWeight",
-                    props.fontWeight === "bold" ? "normal" : "bold"
-                  )
-                }
-                className={`rounded p-1.5 transition-colors ${
-                  props.fontWeight === "bold"
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted"
-                }`}
-              >
+              <ToggleBtn active={props.fontWeight === "bold"} onClick={() => update("fontWeight", props.fontWeight === "bold" ? "normal" : "bold")}>
                 <Bold className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={() =>
-                  updateProp(
-                    "fontStyle",
-                    props.fontStyle === "italic" ? "normal" : "italic"
-                  )
-                }
-                className={`rounded p-1.5 transition-colors ${
-                  props.fontStyle === "italic"
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted"
-                }`}
-              >
+              </ToggleBtn>
+              <ToggleBtn active={props.fontStyle === "italic"} onClick={() => update("fontStyle", props.fontStyle === "italic" ? "normal" : "italic")}>
                 <Italic className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={() => updateProp("underline", !props.underline)}
-                className={`rounded p-1.5 transition-colors ${
-                  props.underline
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted"
-                }`}
-              >
+              </ToggleBtn>
+              <ToggleBtn active={!!props.underline} onClick={() => update("underline", !props.underline)}>
                 <Underline className="h-3.5 w-3.5" />
-              </button>
-
+              </ToggleBtn>
               <div className="mx-1 h-4 w-px bg-border" />
-
-              {(["left", "center", "right"] as const).map((align) => {
-                const Icon =
-                  align === "left"
-                    ? AlignLeft
-                    : align === "center"
-                      ? AlignCenter
-                      : AlignRight;
-                return (
-                  <button
-                    key={align}
-                    onClick={() => updateProp("textAlign", align)}
-                    className={`rounded p-1.5 transition-colors ${
-                      props.textAlign === align
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted"
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                  </button>
-                );
-              })}
+              <ToggleBtn active={props.textAlign === "left"} onClick={() => update("textAlign", "left")}>
+                <AlignLeft className="h-3.5 w-3.5" />
+              </ToggleBtn>
+              <ToggleBtn active={props.textAlign === "center"} onClick={() => update("textAlign", "center")}>
+                <AlignCenter className="h-3.5 w-3.5" />
+              </ToggleBtn>
+              <ToggleBtn active={props.textAlign === "right"} onClick={() => update("textAlign", "right")}>
+                <AlignRight className="h-3.5 w-3.5" />
+              </ToggleBtn>
+            </div>
+            {/* Line height & letter spacing */}
+            <div className="grid grid-cols-2 gap-1.5">
+              <NumInput label="Interligne" value={Math.round((props.lineHeight ?? 1.2) * 100) / 100} onChange={(v) => update("lineHeight", v)} step={0.1} />
+              <NumInput label="Espacement" value={props.charSpacing ?? 0} onChange={(v) => update("charSpacing", v)} step={10} />
             </div>
           </div>
         )}
 
-        {/* ===== FILL COLOR ===== */}
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-medium text-muted-foreground">
-            Couleur
-          </label>
+        {/* === FILL COLOR === */}
+        <div>
+          <SectionLabel>Couleur</SectionLabel>
+          {props.fillType === "gradient" ? (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <input type="color" value={props.gradientColor1} onChange={(e) => updateGradient(e.target.value, props.gradientColor2 ?? "#a855f7")} className="h-7 w-7 cursor-pointer rounded border" />
+                <span className="text-[10px] text-muted-foreground">→</span>
+                <input type="color" value={props.gradientColor2} onChange={(e) => updateGradient(props.gradientColor1 ?? "#6366f1", e.target.value)} className="h-7 w-7 cursor-pointer rounded border" />
+                <span className="flex-1 text-[10px] text-muted-foreground">Dégradé</span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <input type="color" value={props.fill} onChange={(e) => update("fill", e.target.value)} className="h-7 w-7 cursor-pointer rounded border" />
+              <Input value={props.fill} onChange={(e) => update("fill", e.target.value)} className="h-7 font-mono text-xs" />
+            </div>
+          )}
+        </div>
+
+        {/* === BORDER RADIUS (rect only) === */}
+        {isRect && (
+          <div>
+            <SectionLabel>Coins arrondis</SectionLabel>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={props.rx ?? 0}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value);
+                  update("rx", v);
+                  update("ry", v);
+                }}
+                className="flex-1 accent-primary"
+              />
+              <span className="w-8 text-center text-[11px] text-muted-foreground">{props.rx ?? 0}</span>
+            </div>
+          </div>
+        )}
+
+        {/* === STROKE === */}
+        <div>
+          <SectionLabel>Bordure</SectionLabel>
           <div className="flex items-center gap-2">
             <input
               type="color"
-              value={props.fill}
-              onChange={(e) => updateProp("fill", e.target.value)}
+              value={props.stroke || "#000000"}
+              onChange={(e) => update("stroke", e.target.value)}
               className="h-7 w-7 cursor-pointer rounded border"
             />
             <Input
-              value={props.fill}
-              onChange={(e) => updateProp("fill", e.target.value)}
-              className="h-7 font-mono text-xs"
+              type="number"
+              value={props.strokeWidth ?? 0}
+              onChange={(e) => update("strokeWidth", parseInt(e.target.value) || 0)}
+              className="h-7 w-16 text-center text-xs"
+              min={0}
+              placeholder="0"
             />
+            <span className="text-[10px] text-muted-foreground">px</span>
           </div>
         </div>
 
-        {/* ===== OPACITY ===== */}
-        <div className="space-y-1.5">
+        {/* === OPACITY === */}
+        <div>
           <div className="flex items-center justify-between">
-            <label className="text-[11px] font-medium text-muted-foreground">
-              Opacité
-            </label>
-            <span className="text-[11px] text-muted-foreground">
-              {Math.round(props.opacity * 100)}%
-            </span>
+            <SectionLabel>Opacité</SectionLabel>
+            <span className="text-[11px] text-muted-foreground">{Math.round(props.opacity * 100)}%</span>
           </div>
           <input
             type="range"
@@ -370,11 +411,46 @@ export function PropertiesPanel({
             max={1}
             step={0.05}
             value={props.opacity}
-            onChange={(e) => updateProp("opacity", parseFloat(e.target.value))}
+            onChange={(e) => update("opacity", parseFloat(e.target.value))}
             className="w-full accent-primary"
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+// Small helper components
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <label className="mb-1 block text-[11px] font-medium text-muted-foreground">{children}</label>;
+}
+
+function Section({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={`rounded-lg border p-2.5 ${className ?? ""}`}>{children}</div>;
+}
+
+function ToggleBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded p-1.5 transition-colors ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function NumInput({ label, value, onChange, step = 1 }: { label: string; value: number; onChange: (v: number) => void; step?: number }) {
+  return (
+    <div className="flex items-center gap-1">
+      <span className="w-4 text-[10px] text-muted-foreground">{label}</span>
+      <Input
+        type="number"
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+        className="h-6 text-center text-[11px]"
+        step={step}
+      />
     </div>
   );
 }
