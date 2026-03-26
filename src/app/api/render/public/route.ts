@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getRenderQueue, type RenderJobData } from "@/lib/bullmq/queues";
 
+/**
+ * Track a generation (for quota counting).
+ * Actual rendering is done client-side via Fabric.js in the browser.
+ */
 export async function POST(request: Request) {
   try {
-    const { event_id, template_id, field_values } = await request.json();
+    const { event_id, template_id } = await request.json();
 
     if (!event_id || !template_id) {
       return NextResponse.json(
@@ -39,61 +42,28 @@ export async function POST(request: Request) {
 
     if (org && org.generations_used >= org.generations_limit) {
       return NextResponse.json(
-        { success: false, error: "Generation quota exceeded" },
+        { success: false, error: "Quota de générations dépassé" },
         { status: 402 }
       );
     }
 
-    // Create generation record (no participant linked for anonymous)
-    const { data: generation, error: genError } = await supabase
-      .from("generations")
-      .insert({
-        participant_id: null,
-        template_id,
-        organization_id: event.organization_id,
-        status: "pending",
-      })
-      .select()
-      .single();
-
-    if (genError) {
-      return NextResponse.json(
-        { success: false, error: "Failed to create generation" },
-        { status: 500 }
-      );
-    }
-
-    // Enqueue render job if Redis is available
-    const queue = getRenderQueue();
-    if (queue) {
-      const jobData: RenderJobData = {
-        generation_id: generation.id,
-        template_id,
-        participant_id: "",
-        organization_id: event.organization_id,
-        field_values: field_values ?? {},
-      };
-      await queue.add(`render-${generation.id}`, jobData);
-    } else {
-      // No Redis — mark as failed, client will use fallback
-      await supabase
-        .from("generations")
-        .update({
-          status: "failed",
-          error_message: "Render service not available",
-        })
-        .eq("id", generation.id);
-
-      return NextResponse.json(
-        { success: false, error: "Render service not available" },
-        { status: 503 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: { generation_id: generation.id, status: "pending" },
+    // Track generation + increment counter
+    await supabase.from("generations").insert({
+      participant_id: null,
+      template_id,
+      organization_id: event.organization_id,
+      status: "completed",
+      completed_at: new Date().toISOString(),
     });
+
+    if (org) {
+      await supabase
+        .from("organizations")
+        .update({ generations_used: org.generations_used + 1 })
+        .eq("id", event.organization_id);
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[POST /api/render/public]", error);
     return NextResponse.json(

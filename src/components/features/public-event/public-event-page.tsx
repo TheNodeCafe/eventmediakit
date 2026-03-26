@@ -125,46 +125,20 @@ export function PublicEventPage({
     setDownloadDone(false);
 
     try {
-      const res = await fetch("/api/render/public", {
+      // Track generation for quota (fire and forget)
+      fetch("/api/render/public", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           event_id: event.id,
           template_id: activeTemplate.id,
-          field_values: fieldValues,
         }),
-      });
+      }).catch(() => {});
 
-      const result = await res.json();
-
-      if (!result.success) {
-        // Fallback: client-side download via canvas
-        await clientSideDownload();
-        return;
-      }
-
-      // Poll for completion
-      const generationId = result.data.generation_id;
-      for (let i = 0; i < 30; i++) {
-        await new Promise((r) => setTimeout(r, 2000));
-        const statusRes = await fetch(`/api/generations/${generationId}`);
-        const statusData = await statusRes.json();
-
-        if (statusData.data?.status === "completed" && statusData.data?.file_url) {
-          triggerDownload(statusData.data.file_url);
-          setDownloadDone(true);
-          return;
-        }
-        if (statusData.data?.status === "failed") {
-          await clientSideDownload();
-          return;
-        }
-      }
-
-      // Timeout — fallback to client-side
+      // Render client-side via Fabric.js
       await clientSideDownload();
     } catch {
-      await clientSideDownload();
+      console.warn("Download failed");
     } finally {
       setDownloading(false);
     }

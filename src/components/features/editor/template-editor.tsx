@@ -109,7 +109,7 @@ export function TemplateEditor({
   }
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col bg-white">
+    <div className="-m-8 flex h-[calc(100vh-3.5rem)] flex-col bg-white">
       {/* Top bar: name + formats + actions */}
       <div className="flex h-11 shrink-0 items-center justify-between border-b px-3">
         <div className="flex items-center gap-2">
