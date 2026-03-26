@@ -50,6 +50,10 @@ export interface Event {
     primary_color?: string;
     secondary_color?: string;
     cover_url?: string;
+    header_image_url?: string;
+    show_dates?: boolean;
+    show_description?: boolean;
+    show_org_name?: boolean;
   };
   access_password: string | null;
   status: "draft" | "active" | "archived";

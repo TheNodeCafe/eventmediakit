@@ -22,6 +22,7 @@ import {
   ExternalLink,
   Copy,
   ArrowRight,
+  PaintBucket,
 } from "lucide-react";
 
 const modules = [
@@ -45,6 +46,13 @@ const modules = [
     description: "Gérez les catégories de participants",
     icon: Tag,
     color: "bg-amber-500/10 text-amber-600",
+  },
+  {
+    href: "settings",
+    label: "Personnalisation",
+    description: "Couleurs, logo, image de fond de la page publique",
+    icon: PaintBucket,
+    color: "bg-pink-500/10 text-pink-600",
   },
   {
     href: "stats",

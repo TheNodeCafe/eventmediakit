@@ -78,7 +78,13 @@ export function PublicEventPage({
   const [downloadDone, setDownloadDone] = useState(false);
 
   const org = event.organization;
-  const primaryColor = (org.primary_color || event.branding?.primary_color) as string | undefined;
+  const b = event.branding as Record<string, unknown>;
+  const primaryColor = (b?.primary_color || org.primary_color) as string | undefined;
+  const headerImageUrl = b?.header_image_url as string | undefined;
+  const logoUrl = (b?.logo_url || org.logo_url) as string | undefined;
+  const showDates = b?.show_dates !== false;
+  const showDescription = b?.show_description !== false;
+  const showOrgName = b?.show_org_name !== false;
 
   // Filter templates by category. Templates with no category association are always shown.
   const hasCategories = categories.length > 0;
@@ -266,8 +272,23 @@ export function PublicEventPage({
       {/* Hero header */}
       <header
         className="relative overflow-hidden"
-        style={{ backgroundColor: primaryColor ?? "#1e1b4b" }}
+        style={
+          headerImageUrl
+            ? {
+                backgroundImage: `url(${headerImageUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : { backgroundColor: primaryColor ?? "#1e1b4b" }
+        }
       >
+        {/* Overlay for image backgrounds */}
+        {headerImageUrl && (
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: `${primaryColor ?? "#1e1b4b"}77` }}
+          />
+        )}
         {/* Decorative elements */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white/20 blur-3xl" />
@@ -278,16 +299,16 @@ export function PublicEventPage({
         <div className="relative mx-auto max-w-6xl px-6 py-10 lg:py-14">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-5">
-              {org.logo_url && (
+              {logoUrl && (
                 <img
-                  src={org.logo_url}
+                  src={logoUrl}
                   alt={org.name}
                   className="h-16 rounded-xl object-contain shadow-lg"
                 />
               )}
               <div className="text-white">
                 <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">{event.name}</h1>
-                {event.start_date && (
+                {showDates && event.start_date && (
                   <p className="mt-1.5 text-sm font-medium text-white/60">
                     {new Date(event.start_date).toLocaleDateString("fr-FR", {
                       day: "numeric",
@@ -315,7 +336,7 @@ export function PublicEventPage({
       </header>
 
       {/* Description */}
-      {event.description && (
+      {showDescription && event.description && (
         <div className="border-b border-border/30 bg-white">
           <div className="mx-auto max-w-6xl px-6 py-5">
             <p className="text-center text-[15px] text-muted-foreground leading-relaxed">{event.description}</p>
@@ -553,7 +574,7 @@ export function PublicEventPage({
         <div className="mx-auto max-w-6xl px-6 py-5">
           <div className="flex items-center justify-between text-[12px] text-muted-foreground/40">
             <span>Propulsé par EventMediaKit</span>
-            <span>{org.name}</span>
+            {showOrgName && <span>{org.name}</span>}
           </div>
         </div>
       </footer>
