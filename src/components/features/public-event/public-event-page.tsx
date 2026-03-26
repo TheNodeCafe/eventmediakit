@@ -171,8 +171,7 @@ export function PublicEventPage({
   }
 
   async function clientSideDownload() {
-    // Fallback: render via Fabric.js in the browser
-    const { StaticCanvas } = await import("fabric");
+    const { StaticCanvas, FabricImage, Pattern } = await import("fabric");
     const canvas = new StaticCanvas(undefined, {
       width: activeTemplate!.width,
       height: activeTemplate!.height,
@@ -180,14 +179,29 @@ export function PublicEventPage({
 
     await canvas.loadFromJSON(activeTemplate!.canvas_json);
 
-    // Inject field values
-    canvas.getObjects().forEach((obj) => {
+    // Inject field values (text + images)
+    for (const obj of canvas.getObjects()) {
       const typed = obj as unknown as Record<string, unknown>;
       const vf = typed.variableField as string | undefined;
-      if (vf && fieldValues[vf] && typed.text !== undefined) {
-        typed.text = fieldValues[vf];
+      if (!vf || !fieldValues[vf]) continue;
+
+      const value = fieldValues[vf];
+
+      if (typed.text !== undefined) {
+        (obj as { set: (k: string, v: unknown) => void }).set("text", value);
+      } else if (value.startsWith("blob:") || value.startsWith("data:") || value.startsWith("http")) {
+        try {
+          const img = await FabricImage.fromURL(value);
+          const shapeW = (typed.radius as number) ? (typed.radius as number) * 2 : (typed.width as number) ?? 100;
+          const shapeH = (typed.radius as number) ? (typed.radius as number) * 2 : (typed.height as number) ?? 100;
+          const imgScale = Math.max(shapeW / (img.width ?? 1), shapeH / (img.height ?? 1));
+          img.set({ scaleX: imgScale, scaleY: imgScale, originX: "center", originY: "center", left: shapeW / 2, top: shapeH / 2 } as never);
+          (obj as { set: (k: string, v: unknown) => void }).set("fill", new Pattern({ source: img.toCanvasElement(), repeat: "no-repeat" }));
+        } catch (e) {
+          console.warn("Image fill failed:", e);
+        }
       }
-    });
+    }
     canvas.renderAll();
 
     const dataUrl = canvas.toDataURL({ format: "png", multiplier: 1 });

@@ -22,27 +22,85 @@ export function TemplatePreview({
   const maxPreviewWidth = 560;
   const scale = Math.min(maxPreviewWidth / width, 1);
 
-  // Store field values in ref so we can access latest in init
   const fieldValuesRef = useRef(fieldValues);
   fieldValuesRef.current = fieldValues;
 
-  const injectValues = useCallback((canvas: { getObjects: () => unknown[]; renderAll: () => void }, values: Record<string, string>) => {
-    canvas.getObjects().forEach((obj) => {
-      const typed = obj as Record<string, unknown>;
-      const variableField = typed.variableField as string | undefined;
-      if (variableField && typed.text !== undefined) {
-        const newText = values[variableField] || `{{${variableField}}}`;
-        // Use set method if available for proper Fabric.js reactivity
-        const fabricObj = obj as { set?: (key: string, value: string) => void };
-        if (typeof fabricObj.set === "function") {
-          fabricObj.set("text", newText);
-        } else {
-          typed.text = newText;
+  const injectValues = useCallback(
+    async (
+      canvas: { getObjects: () => unknown[]; renderAll: () => void },
+      values: Record<string, string>
+    ) => {
+      const objects = canvas.getObjects();
+
+      for (const obj of objects) {
+        const typed = obj as Record<string, unknown>;
+        const variableField = typed.variableField as string | undefined;
+        if (!variableField) continue;
+
+        const value = values[variableField];
+
+        // Text fields
+        if (typed.text !== undefined) {
+          const newText = value || `{{${variableField}}}`;
+          const fabricObj = obj as {
+            set?: (key: string, value: unknown) => void;
+          };
+          if (typeof fabricObj.set === "function") {
+            fabricObj.set("text", newText);
+          } else {
+            typed.text = newText;
+          }
+        }
+
+        // Image fields: apply image as fill pattern on the shape
+        if (value && (value.startsWith("blob:") || value.startsWith("data:") || value.startsWith("http"))) {
+          // This is an image URL — apply as pattern fill
+          if (typed.text === undefined) {
+            try {
+              const { FabricImage, Pattern } = await import("fabric");
+              const img = await FabricImage.fromURL(value);
+              const objWidth = ((typed.width as number) ?? 100) * ((typed.scaleX as number) ?? 1);
+              const objHeight = ((typed.height as number) ?? 100) * ((typed.scaleY as number) ?? 1);
+              // For circles, use radius * 2
+              const shapeW = (typed.radius as number) ? (typed.radius as number) * 2 : objWidth / ((typed.scaleX as number) ?? 1);
+              const shapeH = (typed.radius as number) ? (typed.radius as number) * 2 : objHeight / ((typed.scaleY as number) ?? 1);
+
+              // Scale image to cover the shape
+              const imgScale = Math.max(
+                shapeW / (img.width ?? 1),
+                shapeH / (img.height ?? 1)
+              );
+              img.set({
+                scaleX: imgScale,
+                scaleY: imgScale,
+                originX: "center",
+                originY: "center",
+                left: shapeW / 2,
+                top: shapeH / 2,
+              } as never);
+
+              const pattern = new Pattern({
+                source: img.toCanvasElement(),
+                repeat: "no-repeat",
+              });
+
+              const fabricObj = obj as {
+                set?: (key: string, value: unknown) => void;
+              };
+              if (typeof fabricObj.set === "function") {
+                fabricObj.set("fill", pattern);
+              }
+            } catch (e) {
+              console.warn("Failed to load image for variable field:", e);
+            }
+          }
         }
       }
-    });
-    canvas.renderAll();
-  }, []);
+
+      canvas.renderAll();
+    },
+    []
+  );
 
   // Initialize canvas once
   useEffect(() => {
@@ -67,8 +125,7 @@ export function TemplatePreview({
         canvas.setZoom(scale);
       }
 
-      // Inject initial values
-      injectValues(canvas, fieldValuesRef.current);
+      await injectValues(canvas, fieldValuesRef.current);
 
       fabricRef.current = canvas;
       initDone.current = true;
