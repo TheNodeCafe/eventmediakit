@@ -22,9 +22,17 @@ export async function PATCH(
     .eq("id", eventId)
     .single();
 
-  // Merge branding
+  // Merge branding — explicitly handle null/undefined to allow deletion
   const currentBranding = (event?.branding as Record<string, unknown>) ?? {};
-  const newBranding = { ...currentBranding, ...body.branding };
+  const incomingBranding = body.branding ?? {};
+  const newBranding = { ...currentBranding };
+  for (const [key, value] of Object.entries(incomingBranding)) {
+    if (value === null || value === undefined) {
+      delete newBranding[key];
+    } else {
+      newBranding[key] = value;
+    }
+  }
 
   // Update event fields + branding
   const updateData: Record<string, unknown> = { branding: newBranding };
