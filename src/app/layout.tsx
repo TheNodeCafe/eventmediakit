@@ -10,8 +10,45 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "EventMediaKit",
-  description: "Créez des kits média personnalisables pour vos événements",
+  title: {
+    default: "EventMediaKit — Kits média personnalisables pour vos événements",
+    template: "%s — EventMediaKit",
+  },
+  description:
+    "Créez des kits média personnalisables pour vos événements. Vos speakers et exposants génèrent leurs propres visuels en respectant votre charte graphique.",
+  keywords: [
+    "media kit",
+    "événement",
+    "template",
+    "visuel personnalisable",
+    "salon professionnel",
+    "conférence",
+    "speaker",
+    "exposant",
+    "charte graphique",
+    "SaaS",
+  ],
+  authors: [{ name: "EventMediaKit" }],
+  creator: "EventMediaKit",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://media-kit.pulse-n-flow.com"),
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    siteName: "EventMediaKit",
+    title: "EventMediaKit — Kits média personnalisables pour vos événements",
+    description:
+      "Vos speakers et exposants génèrent leurs propres visuels en respectant votre charte graphique. Fini les allers-retours avec votre graphiste.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "EventMediaKit — Kits média personnalisables",
+    description:
+      "Vos participants génèrent leurs propres visuels en respectant votre charte graphique.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

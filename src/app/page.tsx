@@ -9,9 +9,6 @@ import {
   Check,
   Zap,
   Shield,
-  Users,
-  ChevronRight,
-  Menu,
 } from "lucide-react";
 
 const PLANS = [
@@ -111,8 +108,28 @@ const STEPS = [
 ];
 
 export default function Home() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "EventMediaKit",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    description: "Plateforme SaaS de kits média personnalisables pour les organisateurs d'événements.",
+    offers: {
+      "@type": "AggregateOffer",
+      lowPrice: "49",
+      highPrice: "349",
+      priceCurrency: "EUR",
+      offerCount: "3",
+    },
+  };
+
   return (
     <div className="min-h-screen bg-white text-[oklch(0.17_0.02_260)]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-[oklch(0.91_0.01_264)] bg-white/80 backdrop-blur-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -155,9 +172,10 @@ export default function Home() {
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[oklch(0.488_0.243_264.376)] px-4 py-2 text-sm font-medium text-white shadow-md shadow-[oklch(0.488_0.243_264.376)]/25 transition-all hover:shadow-lg hover:brightness-110"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-[oklch(0.488_0.243_264.376)] px-4 py-2 text-sm font-medium text-white shadow-md shadow-[oklch(0.488_0.243_264.376)]/25 transition-all hover:shadow-lg hover:brightness-110"
             >
-              Commencer gratuitement
+              <span className="hidden sm:inline">Commencer gratuitement</span>
+              <span className="sm:hidden">Essayer</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -512,34 +530,29 @@ export default function Home() {
                 Produit
               </h4>
               <ul className="mt-4 space-y-2.5">
-                {["Fonctionnalités", "Tarifs", "Exemples", "API"].map(
-                  (item) => (
-                    <li key={item}>
-                      <a
-                        href="#"
-                        className="text-sm text-white/50 transition-colors hover:text-white"
-                      >
-                        {item}
-                      </a>
-                    </li>
-                  )
-                )}
+                {[
+                  { label: "Fonctionnalités", href: "#features" },
+                  { label: "Tarifs", href: "#pricing" },
+                  { label: "Comment ça marche", href: "#how-it-works" },
+                ].map((item) => (
+                  <li key={item.label}>
+                    <a href={item.href} className="text-sm text-white/50 transition-colors hover:text-white">{item.label}</a>
+                  </li>
+                ))}
               </ul>
             </div>
 
             <div>
               <h4 className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                Ressources
+                Entreprise
               </h4>
               <ul className="mt-4 space-y-2.5">
-                {["Documentation", "Blog", "Guides", "Support"].map((item) => (
-                  <li key={item}>
-                    <a
-                      href="#"
-                      className="text-sm text-white/50 transition-colors hover:text-white"
-                    >
-                      {item}
-                    </a>
+                {[
+                  { label: "À propos", href: "/about" },
+                  { label: "Contact", href: "/contact" },
+                ].map((item) => (
+                  <li key={item.label}>
+                    <Link href={item.href} className="text-sm text-white/50 transition-colors hover:text-white">{item.label}</Link>
                   </li>
                 ))}
               </ul>
@@ -551,18 +564,12 @@ export default function Home() {
               </h4>
               <ul className="mt-4 space-y-2.5">
                 {[
-                  "Mentions légales",
-                  "CGU",
-                  "Confidentialité",
-                  "RGPD",
+                  { label: "Mentions légales", href: "/legal" },
+                  { label: "CGU", href: "/terms" },
+                  { label: "Confidentialité", href: "/privacy" },
                 ].map((item) => (
-                  <li key={item}>
-                    <a
-                      href="#"
-                      className="text-sm text-white/50 transition-colors hover:text-white"
-                    >
-                      {item}
-                    </a>
+                  <li key={item.label}>
+                    <Link href={item.href} className="text-sm text-white/50 transition-colors hover:text-white">{item.label}</Link>
                   </li>
                 ))}
               </ul>
