@@ -280,59 +280,81 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Problem / Solution */}
+      {/* Value Proposition — Visibility & Engagement */}
       <section className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
-        <div className="grid items-center gap-16 lg:grid-cols-2">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Vos participants ont besoin de visuels.{" "}
-              <span className="text-[oklch(0.5_0.02_264)]">
-                Votre graphiste n&apos;a pas le temps.
-              </span>
-            </h2>
-            <div className="mt-8 space-y-4">
-              {[
-                "Chaque speaker veut son visuel personnalisé pour promouvoir l'événement",
-                "Les allers-retours email avec le graphiste prennent des jours",
-                "Les participants modifient vos visuels et cassent votre charte graphique",
-                "Vous perdez un temps fou à gérer des fichiers Photoshop",
-              ].map((problem) => (
-                <div key={problem} className="flex items-start gap-3">
-                  <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[oklch(0.577_0.245_27.325)]/10">
-                    <span className="text-xs text-[oklch(0.577_0.245_27.325)]">
-                      x
-                    </span>
-                  </div>
-                  <p className="text-[oklch(0.5_0.02_264)]">{problem}</p>
-                </div>
-              ))}
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[oklch(0.488_0.243_264.376)]/10 px-4 py-1.5 text-sm font-medium text-[oklch(0.488_0.243_264.376)]">
+            <Zap className="h-3.5 w-3.5" />
+            Le levier que vos concurrents n&apos;utilisent pas encore
+          </div>
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+            Transformez chaque participant en{" "}
+            <span className="bg-gradient-to-r from-[oklch(0.488_0.243_264.376)] to-[oklch(0.6_0.2_290)] bg-clip-text text-transparent">
+              ambassadeur
+            </span>{" "}
+            de votre événement
+          </h2>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-[oklch(0.5_0.02_264)]">
+            Quand vos speakers, exposants et visiteurs partagent un visuel personnalisé
+            sur leurs réseaux, c&apos;est votre événement qui gagne en visibilité.
+            Gratuitement. Organiquement.
+          </p>
+        </div>
+
+        <div className="mt-16 grid gap-6 md:grid-cols-3">
+          {/* Card 1 */}
+          <div className="group rounded-2xl border border-[oklch(0.91_0.01_264)] bg-white p-8 transition-all hover:border-[oklch(0.488_0.243_264.376)]/30 hover:shadow-lg hover:shadow-[oklch(0.488_0.243_264.376)]/5">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[oklch(0.488_0.243_264.376)]/15 to-[oklch(0.6_0.2_290)]/10">
+              <Globe className="h-6 w-6 text-[oklch(0.488_0.243_264.376)]" />
             </div>
+            <div className="mb-2 text-3xl font-bold text-[oklch(0.488_0.243_264.376)]">x10</div>
+            <h3 className="text-lg font-bold">Portée organique</h3>
+            <p className="mt-2 text-sm leading-relaxed text-[oklch(0.5_0.02_264)]">
+              Chaque participant qui partage son visuel expose votre marque
+              à tout son réseau. 100 participants = des milliers d&apos;impressions
+              sans budget publicitaire.
+            </p>
           </div>
 
-          <div className="rounded-2xl border border-[oklch(0.488_0.243_264.376)]/20 bg-gradient-to-br from-[oklch(0.488_0.243_264.376)]/5 to-transparent p-8 lg:p-10">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[oklch(0.488_0.243_264.376)]/10 px-3 py-1 text-sm font-medium text-[oklch(0.488_0.243_264.376)]">
-              <Sparkles className="h-3.5 w-3.5" />
-              La solution
+          {/* Card 2 */}
+          <div className="group rounded-2xl border border-[oklch(0.91_0.01_264)] bg-white p-8 transition-all hover:border-[oklch(0.488_0.243_264.376)]/30 hover:shadow-lg hover:shadow-[oklch(0.488_0.243_264.376)]/5">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[oklch(0.488_0.243_264.376)]/15 to-[oklch(0.6_0.2_290)]/10">
+              <Shield className="h-6 w-6 text-[oklch(0.488_0.243_264.376)]" />
             </div>
-            <h3 className="text-2xl font-bold tracking-tight">
-              EventMediaKit automatise tout
-            </h3>
-            <div className="mt-6 space-y-4">
-              {[
-                "Créez des templates avec zones personnalisables",
-                "Partagez un lien unique à vos participants",
-                "Ils génèrent leurs visuels en autonomie",
-                "Votre charte graphique est toujours respectée",
-              ].map((solution) => (
-                <div key={solution} className="flex items-start gap-3">
-                  <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[oklch(0.488_0.243_264.376)]/20">
-                    <Check className="h-3 w-3 text-[oklch(0.488_0.243_264.376)]" />
-                  </div>
-                  <p className="text-[oklch(0.3_0.06_264)]">{solution}</p>
-                </div>
-              ))}
-            </div>
+            <div className="mb-2 text-3xl font-bold text-[oklch(0.488_0.243_264.376)]">100%</div>
+            <h3 className="text-lg font-bold">On-brand garanti</h3>
+            <p className="mt-2 text-sm leading-relaxed text-[oklch(0.5_0.02_264)]">
+              Fini les visuels faits maison sur Canva avec le mauvais logo.
+              Vos templates verrouillent la charte graphique — seuls les
+              champs autorisés sont modifiables.
+            </p>
           </div>
+
+          {/* Card 3 */}
+          <div className="group rounded-2xl border border-[oklch(0.91_0.01_264)] bg-white p-8 transition-all hover:border-[oklch(0.488_0.243_264.376)]/30 hover:shadow-lg hover:shadow-[oklch(0.488_0.243_264.376)]/5">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[oklch(0.488_0.243_264.376)]/15 to-[oklch(0.6_0.2_290)]/10">
+              <Zap className="h-6 w-6 text-[oklch(0.488_0.243_264.376)]" />
+            </div>
+            <div className="mb-2 text-3xl font-bold text-[oklch(0.488_0.243_264.376)]">0</div>
+            <h3 className="text-lg font-bold">Effort pour vous</h3>
+            <p className="mt-2 text-sm leading-relaxed text-[oklch(0.5_0.02_264)]">
+              Un lien, c&apos;est tout. Vos participants se servent eux-mêmes
+              en 30 secondes. Plus d&apos;allers-retours email, plus de fichiers
+              Photoshop, plus de graphiste débordé.
+            </p>
+          </div>
+        </div>
+
+        {/* Impact quote */}
+        <div className="mt-16 rounded-2xl bg-gradient-to-r from-[oklch(0.488_0.243_264.376)] to-[oklch(0.55_0.22_280)] p-8 text-center text-white lg:p-12">
+          <p className="text-xl font-bold leading-relaxed lg:text-2xl">
+            &ldquo;Un événement avec 200 speakers qui partagent chacun un visuel,
+            c&apos;est <span className="underline decoration-white/40 underline-offset-4">200 publications</span> qui parlent
+            de vous. Sans lever le petit doigt.&rdquo;
+          </p>
+          <p className="mt-4 text-sm text-white/60">
+            Le contenu généré par vos participants est le meilleur marketing qui existe.
+          </p>
         </div>
       </section>
 
