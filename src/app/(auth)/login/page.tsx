@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
+import { useI18n, LanguageToggle } from "@/lib/i18n/context";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError("Email ou mot de passe incorrect");
+      setError(t("auth", "loginError"));
       setLoading(false);
       return;
     }
@@ -39,6 +41,11 @@ export default function LoginPage() {
 
   return (
     <div className="space-y-8">
+      {/* Top right language toggle */}
+      <div className="flex justify-end">
+        <LanguageToggle />
+      </div>
+
       {/* Mobile logo */}
       <div className="flex items-center gap-2.5 lg:hidden">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-md shadow-primary/20">
@@ -48,9 +55,9 @@ export default function LoginPage() {
       </div>
 
       <div>
-        <h1 className="text-[28px] font-bold tracking-tight text-foreground">Connexion</h1>
+        <h1 className="text-[28px] font-bold tracking-tight text-foreground">{t("auth", "loginTitle")}</h1>
         <p className="mt-2 text-[15px] text-muted-foreground">
-          Accédez à votre espace organisateur
+          {t("auth", "loginSubtitle")}
         </p>
       </div>
 
@@ -64,7 +71,7 @@ export default function LoginPage() {
           </div>
         )}
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+          <Label htmlFor="email" className="text-sm font-medium">{t("auth", "email")}</Label>
           <Input
             id="email"
             type="email"
@@ -77,7 +84,7 @@ export default function LoginPage() {
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password" className="text-sm font-medium">Mot de passe</Label>
+            <Label htmlFor="password" className="text-sm font-medium">{t("auth", "password")}</Label>
           </div>
           <Input
             id="password"
@@ -100,10 +107,10 @@ export default function LoginPage() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
               </svg>
-              Connexion...
+              {t("auth", "logging")}
             </span>
           ) : (
-            "Se connecter"
+            t("auth", "loginButton")
           )}
         </Button>
       </form>
@@ -113,14 +120,14 @@ export default function LoginPage() {
           <div className="w-full border-t border-border/40" />
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-white px-3 text-muted-foreground/60">ou</span>
+          <span className="bg-white px-3 text-muted-foreground/60">{t("auth", "or")}</span>
         </div>
       </div>
 
       <p className="text-center text-sm text-muted-foreground">
-        Pas encore de compte ?{" "}
+        {t("auth", "noAccount")}{" "}
         <Link href="/register" className="font-semibold text-primary hover:text-primary/80 transition-colors">
-          Créer un compte
+          {t("auth", "createAccount")}
         </Link>
       </p>
     </div>

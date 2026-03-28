@@ -1,10 +1,15 @@
+"use client";
+
 import { Sparkles } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="flex min-h-screen">
       {/* Left panel - branding */}
@@ -24,34 +29,33 @@ export default function AuthLayout({
 
         <div className="relative space-y-6">
           <h2 className="text-4xl font-bold leading-[1.15] tracking-tight">
-            Créez des kits média
+            {t("auth", "brandingTitle1")}
             <br />
-            <span className="text-[oklch(0.75_0.15_264)]">personnalisables</span> pour
+            <span className="text-[oklch(0.75_0.15_264)]">{t("auth", "brandingTitle2")}</span> {t("auth", "brandingTitle3")}
             <br />
-            vos événements
+            {t("auth", "brandingTitle4")}
           </h2>
           <p className="max-w-md text-lg leading-relaxed text-white/50">
-            Vos participants génèrent leurs propres visuels
-            en respectant votre charte graphique.
+            {t("auth", "brandingSubtitle")}
           </p>
           <div className="flex gap-8 pt-2">
             <div>
               <p className="text-2xl font-bold">500+</p>
-              <p className="text-sm text-white/40">Événements créés</p>
+              <p className="text-sm text-white/40">{t("social", "events")}</p>
             </div>
             <div>
               <p className="text-2xl font-bold">50K+</p>
-              <p className="text-sm text-white/40">Visuels générés</p>
+              <p className="text-sm text-white/40">{t("social", "visuals")}</p>
             </div>
             <div>
               <p className="text-2xl font-bold">98%</p>
-              <p className="text-sm text-white/40">Satisfaction</p>
+              <p className="text-sm text-white/40">{t("social", "satisfaction")}</p>
             </div>
           </div>
         </div>
 
         <p className="relative text-sm text-white/25">
-          EventMediaKit — SaaS pour organisateurs d&apos;événements
+          {t("auth", "brandingFooter")}
         </p>
       </div>
 

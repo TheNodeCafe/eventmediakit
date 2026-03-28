@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useI18n, LanguageToggle } from "@/lib/i18n/context";
 import {
   Sparkles,
   Palette,
@@ -11,103 +14,128 @@ import {
   Shield,
 } from "lucide-react";
 
-const PLANS = [
-  {
-    name: "Starter",
-    price: "49",
-    description: "Pour les petits événements et les premiers pas.",
-    features: [
-      "1 événement actif",
-      "3 templates",
-      "500 générations / mois",
-      "Export HD (PNG)",
-      "Support email",
-    ],
-    cta: "Commencer",
-    highlighted: false,
-  },
-  {
-    name: "Growth",
-    price: "149",
-    description: "Pour les organisateurs qui passent à l'échelle.",
-    features: [
-      "5 événements actifs",
-      "15 templates",
-      "5 000 générations / mois",
-      "Export HD (PNG + PDF)",
-      "Page publique personnalisée",
-      "Support prioritaire",
-    ],
-    cta: "Choisir Growth",
-    highlighted: true,
-  },
-  {
-    name: "Pro",
-    price: "349",
-    description: "Pour les agences et grands événements.",
-    features: [
-      "Événements illimités",
-      "Templates illimités",
-      "25 000 générations / mois",
-      "Export tous formats",
-      "White label complet",
-      "API & webhooks",
-      "Account manager dédié",
-    ],
-    cta: "Choisir Pro",
-    highlighted: false,
-  },
-];
-
-const FEATURES = [
-  {
-    icon: Palette,
-    title: "Éditeur de templates",
-    description:
-      "Créez des templates visuels avec zones personnalisables. Vos participants remplissent, votre charte est respectée.",
-  },
-  {
-    icon: Globe,
-    title: "Page publique partageable",
-    description:
-      "Un lien unique par événement. Vos speakers et exposants accèdent à leur kit média sans créer de compte.",
-  },
-  {
-    icon: Eye,
-    title: "Preview en temps réel",
-    description:
-      "Les participants voient leur visuel se construire en direct pendant qu'ils remplissent leurs informations.",
-  },
-  {
-    icon: Download,
-    title: "Téléchargement HD",
-    description:
-      "Export PNG, PDF, formats optimisés pour les réseaux sociaux. Qualité professionnelle garantie.",
-  },
-];
-
-const STEPS = [
-  {
-    number: "01",
-    title: "Créez votre événement",
-    description:
-      "Configurez votre événement, uploadez votre charte graphique et définissez les champs personnalisables.",
-  },
-  {
-    number: "02",
-    title: "Designez vos templates",
-    description:
-      "Utilisez l'éditeur visuel pour créer des templates avec des zones variables : nom, photo, titre, entreprise...",
-  },
-  {
-    number: "03",
-    title: "Partagez le lien",
-    description:
-      "Envoyez le lien unique à vos participants. Ils génèrent leurs visuels personnalisés en quelques clics.",
-  },
-];
-
 export default function Home() {
+  const { t, locale } = useI18n();
+
+  const PLANS = [
+    {
+      name: "Starter",
+      price: "49",
+      description: t("pricing", "starterDesc"),
+      features:
+        locale === "en"
+          ? [
+              "1 active event",
+              "3 templates",
+              "500 generations / month",
+              "HD Export (PNG)",
+              "Email support",
+            ]
+          : [
+              "1 événement actif",
+              "3 templates",
+              "500 générations / mois",
+              "Export HD (PNG)",
+              "Support email",
+            ],
+      cta: t("pricing", "start"),
+      highlighted: false,
+    },
+    {
+      name: "Growth",
+      price: "149",
+      description: t("pricing", "growthDesc"),
+      features:
+        locale === "en"
+          ? [
+              "5 active events",
+              "15 templates",
+              "5,000 generations / month",
+              "HD Export (PNG + PDF)",
+              "Custom public page",
+              "Priority support",
+            ]
+          : [
+              "5 événements actifs",
+              "15 templates",
+              "5 000 générations / mois",
+              "Export HD (PNG + PDF)",
+              "Page publique personnalisée",
+              "Support prioritaire",
+            ],
+      cta: t("pricing", "chooseGrowth"),
+      highlighted: true,
+    },
+    {
+      name: "Pro",
+      price: "349",
+      description: t("pricing", "proDesc"),
+      features:
+        locale === "en"
+          ? [
+              "Unlimited events",
+              "Unlimited templates",
+              "25,000 generations / month",
+              "All export formats",
+              "Full white label",
+              "API & webhooks",
+              "Dedicated account manager",
+            ]
+          : [
+              "Événements illimités",
+              "Templates illimités",
+              "25 000 générations / mois",
+              "Export tous formats",
+              "White label complet",
+              "API & webhooks",
+              "Account manager dédié",
+            ],
+      cta: t("pricing", "choosePro"),
+      highlighted: false,
+    },
+  ];
+
+  const FEATURES = [
+    {
+      icon: Palette,
+      title: t("features", "editor"),
+      description: t("features", "editorDesc"),
+    },
+    {
+      icon: Globe,
+      title: t("features", "publicPage"),
+      description: t("features", "publicPageDesc"),
+    },
+    {
+      icon: Eye,
+      title: t("features", "preview"),
+      description: t("features", "previewDesc"),
+    },
+    {
+      icon: Download,
+      title: t("features", "download"),
+      description: t("features", "downloadDesc"),
+    },
+  ];
+
+  const STEPS = [
+    {
+      number: "01",
+      title: t("howItWorks", "step1Title"),
+      description: t("howItWorks", "step1Desc"),
+    },
+    {
+      number: "02",
+      title: t("howItWorks", "step2Title"),
+      description: t("howItWorks", "step2Desc"),
+    },
+    {
+      number: "03",
+      title: t("howItWorks", "step3Title"),
+      description: t("howItWorks", "step3Desc"),
+    },
+  ];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -147,19 +175,19 @@ export default function Home() {
               href="#features"
               className="text-sm text-[oklch(0.5_0.02_264)] transition-colors hover:text-[oklch(0.17_0.02_260)]"
             >
-              Fonctionnalités
+              {t("nav", "features")}
             </a>
             <a
               href="#how-it-works"
               className="text-sm text-[oklch(0.5_0.02_264)] transition-colors hover:text-[oklch(0.17_0.02_260)]"
             >
-              Comment ça marche
+              {t("nav", "howItWorks")}
             </a>
             <a
               href="#pricing"
               className="text-sm text-[oklch(0.5_0.02_264)] transition-colors hover:text-[oklch(0.17_0.02_260)]"
             >
-              Tarifs
+              {t("nav", "pricing")}
             </a>
           </div>
 
@@ -168,14 +196,15 @@ export default function Home() {
               href="/login"
               className="hidden text-sm font-medium text-[oklch(0.5_0.02_264)] transition-colors hover:text-[oklch(0.17_0.02_260)] sm:block"
             >
-              Connexion
+              {t("nav", "login")}
             </Link>
+            <LanguageToggle />
             <Link
               href="/register"
               className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-[oklch(0.488_0.243_264.376)] px-4 py-2 text-sm font-medium text-white shadow-md shadow-[oklch(0.488_0.243_264.376)]/25 transition-all hover:shadow-lg hover:brightness-110"
             >
-              <span className="hidden sm:inline">Commencer gratuitement</span>
-              <span className="sm:hidden">Essayer</span>
+              <span className="hidden sm:inline">{t("nav", "ctaDesktop")}</span>
+              <span className="sm:hidden">{t("nav", "ctaMobile")}</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -194,21 +223,19 @@ export default function Home() {
           <div className="mx-auto max-w-4xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[oklch(0.488_0.243_264.376)]/20 bg-[oklch(0.488_0.243_264.376)]/5 px-4 py-1.5 text-sm font-medium text-[oklch(0.488_0.243_264.376)]">
               <Zap className="h-3.5 w-3.5" />
-              Nouveau : Export multi-formats et white label
+              {t("hero", "badge")}
             </div>
 
             <h1 className="text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-              Des kits média{" "}
+              {t("hero", "title1")}{" "}
               <span className="bg-gradient-to-r from-[oklch(0.488_0.243_264.376)] to-[oklch(0.6_0.2_290)] bg-clip-text text-transparent">
-                personnalisables
+                {t("hero", "titleHighlight")}
               </span>{" "}
-              pour vos événements
+              {t("hero", "title2")}
             </h1>
 
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[oklch(0.5_0.02_264)] sm:text-xl">
-              Vos speakers et exposants génèrent leurs propres visuels en
-              respectant votre charte graphique. Fini les allers-retours avec
-              votre graphiste.
+              {t("hero", "subtitle")}
             </p>
 
             <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -216,14 +243,14 @@ export default function Home() {
                 href="/register"
                 className="inline-flex items-center gap-2 rounded-xl bg-[oklch(0.488_0.243_264.376)] px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-[oklch(0.488_0.243_264.376)]/30 transition-all hover:shadow-xl hover:brightness-110"
               >
-                Créer mon premier événement
+                {t("hero", "cta")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <a
                 href="#how-it-works"
                 className="inline-flex items-center gap-2 rounded-xl border border-[oklch(0.91_0.01_264)] px-7 py-3.5 text-base font-semibold text-[oklch(0.3_0.06_264)] transition-all hover:border-[oklch(0.488_0.243_264.376)]/30 hover:bg-[oklch(0.488_0.243_264.376)]/5"
               >
-                Voir comment ça marche
+                {t("hero", "ctaSecondary")}
               </a>
             </div>
           </div>
@@ -245,7 +272,7 @@ export default function Home() {
                     <Palette className="h-8 w-8 text-[oklch(0.488_0.243_264.376)]" />
                   </div>
                   <p className="text-sm font-medium text-[oklch(0.5_0.02_264)]">
-                    Apercu de l&apos;éditeur de templates
+                    {t("hero", "mockupLabel")}
                   </p>
                 </div>
               </div>
@@ -258,14 +285,14 @@ export default function Home() {
       <section className="border-y border-[oklch(0.91_0.01_264)] bg-[oklch(0.985_0.002_260)]">
         <div className="mx-auto max-w-7xl px-6 py-12 lg:py-16">
           <p className="mb-10 text-center text-sm font-medium uppercase tracking-wider text-[oklch(0.5_0.02_264)]">
-            Utilisé par 500+ organisateurs d&apos;événements en France
+            {t("social", "usedBy")}
           </p>
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {[
-              { value: "500+", label: "Événements créés" },
-              { value: "50K+", label: "Visuels générés" },
-              { value: "98%", label: "Satisfaction client" },
-              { value: "< 30s", label: "Temps de génération" },
+              { value: "500+", label: t("social", "events") },
+              { value: "50K+", label: t("social", "visuals") },
+              { value: "98%", label: t("social", "satisfaction") },
+              { value: "< 30s", label: t("social", "genTime") },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-3xl font-bold text-[oklch(0.488_0.243_264.376)] lg:text-4xl">
@@ -285,19 +312,17 @@ export default function Home() {
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[oklch(0.488_0.243_264.376)]/10 px-4 py-1.5 text-sm font-medium text-[oklch(0.488_0.243_264.376)]">
             <Zap className="h-3.5 w-3.5" />
-            Le levier que vos concurrents n&apos;utilisent pas encore
+            {t("value", "badge")}
           </div>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            Transformez chaque participant en{" "}
+            {t("value", "title1")}
             <span className="bg-gradient-to-r from-[oklch(0.488_0.243_264.376)] to-[oklch(0.6_0.2_290)] bg-clip-text text-transparent">
-              ambassadeur
+              {t("value", "titleHighlight")}
             </span>{" "}
-            de votre événement
+            {t("value", "title2")}
           </h2>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-[oklch(0.5_0.02_264)]">
-            Quand vos speakers, exposants et visiteurs partagent un visuel personnalisé
-            sur leurs réseaux, c&apos;est votre événement qui gagne en visibilité.
-            Gratuitement. Organiquement.
+            {t("value", "subtitle")}
           </p>
         </div>
 
@@ -308,11 +333,9 @@ export default function Home() {
               <Globe className="h-6 w-6 text-[oklch(0.488_0.243_264.376)]" />
             </div>
             <div className="mb-2 text-3xl font-bold text-[oklch(0.488_0.243_264.376)]">x10</div>
-            <h3 className="text-lg font-bold">Portée organique</h3>
+            <h3 className="text-lg font-bold">{t("value", "reach")}</h3>
             <p className="mt-2 text-sm leading-relaxed text-[oklch(0.5_0.02_264)]">
-              Chaque participant qui partage son visuel expose votre marque
-              à tout son réseau. 100 participants = des milliers d&apos;impressions
-              sans budget publicitaire.
+              {t("value", "reachDesc")}
             </p>
           </div>
 
@@ -322,11 +345,9 @@ export default function Home() {
               <Shield className="h-6 w-6 text-[oklch(0.488_0.243_264.376)]" />
             </div>
             <div className="mb-2 text-3xl font-bold text-[oklch(0.488_0.243_264.376)]">100%</div>
-            <h3 className="text-lg font-bold">On-brand garanti</h3>
+            <h3 className="text-lg font-bold">{t("value", "brand")}</h3>
             <p className="mt-2 text-sm leading-relaxed text-[oklch(0.5_0.02_264)]">
-              Fini les visuels faits maison sur Canva avec le mauvais logo.
-              Vos templates verrouillent la charte graphique — seuls les
-              champs autorisés sont modifiables.
+              {t("value", "brandDesc")}
             </p>
           </div>
 
@@ -336,11 +357,9 @@ export default function Home() {
               <Zap className="h-6 w-6 text-[oklch(0.488_0.243_264.376)]" />
             </div>
             <div className="mb-2 text-3xl font-bold text-[oklch(0.488_0.243_264.376)]">0</div>
-            <h3 className="text-lg font-bold">Effort pour vous</h3>
+            <h3 className="text-lg font-bold">{t("value", "effort")}</h3>
             <p className="mt-2 text-sm leading-relaxed text-[oklch(0.5_0.02_264)]">
-              Un lien, c&apos;est tout. Vos participants se servent eux-mêmes
-              en 30 secondes. Plus d&apos;allers-retours email, plus de fichiers
-              Photoshop, plus de graphiste débordé.
+              {t("value", "effortDesc")}
             </p>
           </div>
         </div>
@@ -348,12 +367,10 @@ export default function Home() {
         {/* Impact quote */}
         <div className="mt-16 rounded-2xl bg-gradient-to-r from-[oklch(0.488_0.243_264.376)] to-[oklch(0.55_0.22_280)] p-8 text-center text-white lg:p-12">
           <p className="text-xl font-bold leading-relaxed lg:text-2xl">
-            &ldquo;Un événement avec 200 speakers qui partagent chacun un visuel,
-            c&apos;est <span className="underline decoration-white/40 underline-offset-4">200 publications</span> qui parlent
-            de vous. Sans lever le petit doigt.&rdquo;
+            {t("value", "quote")}
           </p>
           <p className="mt-4 text-sm text-white/60">
-            Le contenu généré par vos participants est le meilleur marketing qui existe.
+            {t("value", "quoteNote")}
           </p>
         </div>
       </section>
@@ -366,14 +383,14 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Tout ce qu&apos;il faut pour des kits média{" "}
+              {t("features", "title1")}
               <span className="text-[oklch(0.488_0.243_264.376)]">
-                professionnels
+                {t("features", "titleHighlight")}
               </span>
+              {t("features", "title2")}
             </h2>
             <p className="mt-4 text-lg text-[oklch(0.5_0.02_264)]">
-              De la création à la distribution, EventMediaKit couvre tout le
-              workflow.
+              {t("features", "subtitle")}
             </p>
           </div>
 
@@ -400,14 +417,10 @@ export default function Home() {
       <section id="how-it-works" className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Opérationnel en{" "}
-            <span className="text-[oklch(0.488_0.243_264.376)]">
-              3 étapes
-            </span>
+            {t("howItWorks", "title")}
           </h2>
           <p className="mt-4 text-lg text-[oklch(0.5_0.02_264)]">
-            Pas besoin de compétences techniques. Créez et partagez vos kits
-            média en quelques minutes.
+            {t("howItWorks", "subtitle")}
           </p>
         </div>
 
@@ -439,14 +452,14 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Un plan pour chaque{" "}
+              {t("pricing", "title1")}
               <span className="text-[oklch(0.488_0.243_264.376)]">
-                ambition
+                {t("pricing", "titleHighlight")}
               </span>
+              {t("pricing", "title2")}
             </h2>
             <p className="mt-4 text-lg text-[oklch(0.5_0.02_264)]">
-              Commencez gratuitement pendant 14 jours, puis choisissez le plan
-              adapté à vos besoins.
+              {t("pricing", "subtitle")}
             </p>
           </div>
 
@@ -462,7 +475,7 @@ export default function Home() {
               >
                 {plan.highlighted && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[oklch(0.488_0.243_264.376)] px-4 py-1 text-xs font-semibold text-white">
-                    Populaire
+                    {t("pricing", "popular")}
                   </div>
                 )}
                 <h3 className="text-xl font-semibold">{plan.name}</h3>
@@ -470,10 +483,10 @@ export default function Home() {
                   {plan.description}
                 </p>
                 <div className="mt-6">
-                  <span className="text-4xl font-bold">{plan.price}€</span>
+                  <span className="text-4xl font-bold">{plan.price}&#8364;</span>
                   <span className="text-sm text-[oklch(0.5_0.02_264)]">
                     {" "}
-                    / mois
+                    {t("pricing", "perMonth")}
                   </span>
                 </div>
                 <ul className="mt-8 space-y-3">
@@ -507,23 +520,22 @@ export default function Home() {
         </div>
         <div className="relative mx-auto max-w-4xl px-6 py-24 text-center lg:py-32">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            Prêt à transformer vos événements ?
+            {t("cta", "title")}
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg text-[oklch(0.5_0.02_264)]">
-            Rejoignez les organisateurs qui ont dit adieu aux allers-retours
-            avec leur graphiste. Essai gratuit de 14 jours, sans engagement.
+            {t("cta", "subtitle")}
           </p>
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
               href="/register"
               className="inline-flex items-center gap-2 rounded-xl bg-[oklch(0.488_0.243_264.376)] px-8 py-4 text-base font-semibold text-white shadow-lg shadow-[oklch(0.488_0.243_264.376)]/30 transition-all hover:shadow-xl hover:brightness-110"
             >
-              Commencer gratuitement
+              {t("cta", "button")}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           <p className="mt-4 text-sm text-[oklch(0.5_0.02_264)]">
-            Aucune carte bancaire requise
+            {t("cta", "note")}
           </p>
         </div>
       </section>
@@ -542,22 +554,21 @@ export default function Home() {
                 </span>
               </Link>
               <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/50">
-                La plateforme de kits média personnalisables pour les
-                organisateurs d&apos;événements.
+                {t("footer", "tagline")}
               </p>
             </div>
 
             <div>
               <h4 className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                Produit
+                {t("footer", "product")}
               </h4>
               <ul className="mt-4 space-y-2.5">
                 {[
-                  { label: "Fonctionnalités", href: "#features" },
-                  { label: "Tarifs", href: "#pricing" },
-                  { label: "Comment ça marche", href: "#how-it-works" },
+                  { label: t("nav", "features"), href: "#features" },
+                  { label: t("nav", "pricing"), href: "#pricing" },
+                  { label: t("nav", "howItWorks"), href: "#how-it-works" },
                 ].map((item) => (
-                  <li key={item.label}>
+                  <li key={item.href}>
                     <a href={item.href} className="text-sm text-white/50 transition-colors hover:text-white">{item.label}</a>
                   </li>
                 ))}
@@ -566,14 +577,14 @@ export default function Home() {
 
             <div>
               <h4 className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                Entreprise
+                {t("footer", "company")}
               </h4>
               <ul className="mt-4 space-y-2.5">
                 {[
-                  { label: "À propos", href: "/about" },
-                  { label: "Contact", href: "/contact" },
+                  { label: t("footer", "about"), href: "/about" },
+                  { label: t("footer", "contact"), href: "/contact" },
                 ].map((item) => (
-                  <li key={item.label}>
+                  <li key={item.href}>
                     <Link href={item.href} className="text-sm text-white/50 transition-colors hover:text-white">{item.label}</Link>
                   </li>
                 ))}
@@ -582,15 +593,15 @@ export default function Home() {
 
             <div>
               <h4 className="text-sm font-semibold uppercase tracking-wider text-white/70">
-                Légal
+                {t("footer", "legal")}
               </h4>
               <ul className="mt-4 space-y-2.5">
                 {[
-                  { label: "Mentions légales", href: "/legal" },
-                  { label: "CGU", href: "/terms" },
-                  { label: "Confidentialité", href: "/privacy" },
+                  { label: t("footer", "legalNotice"), href: "/legal" },
+                  { label: t("footer", "terms"), href: "/terms" },
+                  { label: t("footer", "privacy"), href: "/privacy" },
                 ].map((item) => (
-                  <li key={item.label}>
+                  <li key={item.href}>
                     <Link href={item.href} className="text-sm text-white/50 transition-colors hover:text-white">{item.label}</Link>
                   </li>
                 ))}
@@ -600,13 +611,12 @@ export default function Home() {
 
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
             <p className="text-sm text-white/30">
-              &copy; {new Date().getFullYear()} EventMediaKit. Tous droits
-              réservés.
+              &copy; {new Date().getFullYear()} EventMediaKit. {t("footer", "rights")}
             </p>
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-white/30" />
               <span className="text-sm text-white/30">
-                Conforme RGPD
+                {t("footer", "rgpd")}
               </span>
             </div>
           </div>

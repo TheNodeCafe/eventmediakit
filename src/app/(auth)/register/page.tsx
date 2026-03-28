@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
+import { useI18n, LanguageToggle } from "@/lib/i18n/context";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [orgName, setOrgName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +34,7 @@ export default function RegisterPage() {
       const result = await res.json();
 
       if (!result.success) {
-        setError(result.error || "Erreur lors de la création du compte");
+        setError(result.error || t("auth", "registerError"));
         setLoading(false);
         return;
       }
@@ -43,13 +45,18 @@ export default function RegisterPage() {
       router.push("/events");
       router.refresh();
     } catch {
-      setError("Erreur lors de la création du compte");
+      setError(t("auth", "registerError"));
       setLoading(false);
     }
   }
 
   return (
     <div className="space-y-8">
+      {/* Top right language toggle */}
+      <div className="flex justify-end">
+        <LanguageToggle />
+      </div>
+
       {/* Mobile logo */}
       <div className="flex items-center gap-2.5 lg:hidden">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-md shadow-primary/20">
@@ -59,9 +66,9 @@ export default function RegisterPage() {
       </div>
 
       <div>
-        <h1 className="text-[28px] font-bold tracking-tight text-foreground">Créer un compte</h1>
+        <h1 className="text-[28px] font-bold tracking-tight text-foreground">{t("auth", "registerTitle")}</h1>
         <p className="mt-2 text-[15px] text-muted-foreground">
-          Commencez à créer vos kits média en quelques minutes
+          {t("auth", "registerSubtitle")}
         </p>
       </div>
 
@@ -75,10 +82,10 @@ export default function RegisterPage() {
           </div>
         )}
         <div className="space-y-2">
-          <Label htmlFor="orgName" className="text-sm font-medium">Nom de votre organisation</Label>
+          <Label htmlFor="orgName" className="text-sm font-medium">{t("auth", "orgName")}</Label>
           <Input
             id="orgName"
-            placeholder="Mon Salon 2026"
+            placeholder={t("auth", "orgPlaceholder")}
             value={orgName}
             onChange={(e) => setOrgName(e.target.value)}
             required
@@ -86,7 +93,7 @@ export default function RegisterPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+          <Label htmlFor="email" className="text-sm font-medium">{t("auth", "email")}</Label>
           <Input
             id="email"
             type="email"
@@ -98,7 +105,7 @@ export default function RegisterPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium">Mot de passe</Label>
+          <Label htmlFor="password" className="text-sm font-medium">{t("auth", "password")}</Label>
           <Input
             id="password"
             type="password"
@@ -109,7 +116,7 @@ export default function RegisterPage() {
             minLength={6}
             className="h-11 rounded-xl bg-muted/40 border-border/60 px-4 text-[15px] transition-colors focus:bg-white focus:border-primary/40"
           />
-          <p className="text-xs text-muted-foreground/70">Au moins 6 caractères</p>
+          <p className="text-xs text-muted-foreground/70">{t("auth", "minChars")}</p>
         </div>
         <Button
           type="submit"
@@ -122,10 +129,10 @@ export default function RegisterPage() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
               </svg>
-              Création...
+              {t("auth", "creating")}
             </span>
           ) : (
-            "Créer mon compte"
+            t("auth", "registerButton")
           )}
         </Button>
       </form>
@@ -135,14 +142,14 @@ export default function RegisterPage() {
           <div className="w-full border-t border-border/40" />
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-white px-3 text-muted-foreground/60">ou</span>
+          <span className="bg-white px-3 text-muted-foreground/60">{t("auth", "or")}</span>
         </div>
       </div>
 
       <p className="text-center text-sm text-muted-foreground">
-        Déjà un compte ?{" "}
+        {t("auth", "hasAccount")}{" "}
         <Link href="/login" className="font-semibold text-primary hover:text-primary/80 transition-colors">
-          Se connecter
+          {t("auth", "signIn")}
         </Link>
       </p>
     </div>
