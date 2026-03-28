@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
+import { extractFontsFromCanvasJson, loadMultipleFonts } from "@/lib/fonts/google-fonts";
 
 interface TemplatePreviewProps {
   canvasJson: Record<string, unknown>;
@@ -102,6 +103,12 @@ export function TemplatePreview({
     },
     []
   );
+
+  // Load Google Fonts used in this canvas JSON
+  useEffect(() => {
+    const fonts = extractFontsFromCanvasJson(canvasJson);
+    if (fonts.length > 0) loadMultipleFonts(fonts);
+  }, [canvasJson]);
 
   // Initialize canvas once
   useEffect(() => {

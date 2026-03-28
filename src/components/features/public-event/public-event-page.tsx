@@ -12,6 +12,7 @@ import { ImageCropEditor } from "./image-crop-editor";
 import { LanguageToggle } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import { FORMAT_PRESETS } from "@/lib/fabric/format-presets";
+import { extractFontsFromCanvasJson, loadMultipleFonts } from "@/lib/fonts/google-fonts";
 import type { TemplateFormat } from "@/types";
 
 interface FieldDefinition {
@@ -157,6 +158,10 @@ export function PublicEventPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ event_id: event.id, template_id: template.id }),
       }).catch(() => {});
+
+      // Load Google Fonts used in the template
+      const templateFonts = extractFontsFromCanvasJson(template.canvas_json);
+      if (templateFonts.length > 0) loadMultipleFonts(templateFonts);
 
       // Client-side render
       const { StaticCanvas, FabricImage, Pattern } = await import("fabric");

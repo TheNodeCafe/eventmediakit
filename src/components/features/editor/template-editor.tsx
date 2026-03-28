@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/store/editor-store";
 import { FORMAT_PRESETS } from "@/lib/fabric/format-presets";
 import { CUSTOM_PROPERTIES } from "@/lib/fabric/variable-fields";
+import { extractFontsFromCanvasJson, loadMultipleFonts } from "@/lib/fonts/google-fonts";
 import type { TemplateFormat, VariableFieldDefinition, ParticipantCategory } from "@/types";
 import { Save, Eye, ArrowLeft, Tag, CheckCircle, AlertTriangle } from "lucide-react";
 import Link from "next/link";
@@ -61,6 +62,14 @@ export function TemplateEditor({
   const [layersKey, setLayersKey] = useState(0);
   const { isDirty, setIsDirty, format, canvasWidth, canvasHeight, setFormat } =
     useEditorStore();
+
+  // Load Google Fonts used in the canvas JSON on initial load
+  useEffect(() => {
+    if (initialJson) {
+      const fonts = extractFontsFromCanvasJson(initialJson);
+      if (fonts.length > 0) loadMultipleFonts(fonts);
+    }
+  }, [initialJson]);
 
   // Unsaved changes warning
   useEffect(() => {

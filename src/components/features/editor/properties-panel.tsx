@@ -32,6 +32,12 @@ import {
   FlipVertical,
   ImagePlus,
 } from "lucide-react";
+import {
+  getFontsByCategory,
+  CATEGORY_LABELS,
+  loadGoogleFont,
+  type FontCategory,
+} from "@/lib/fonts/google-fonts";
 
 interface PropertiesPanelProps {
   canvas: Canvas | null;
@@ -77,11 +83,8 @@ interface ObjectProps {
   shadowBlur?: number;
 }
 
-const FONTS = [
-  "Arial", "Helvetica", "Inter", "Georgia", "Times New Roman",
-  "Courier New", "Verdana", "Impact", "Trebuchet MS", "Tahoma",
-  "Comic Sans MS", "Palatino",
-];
+const FONTS_BY_CATEGORY = getFontsByCategory();
+const CATEGORY_ORDER: FontCategory[] = ["sans-serif", "serif", "display", "handwriting", "monospace"];
 
 export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps) {
   const { selectedObjectId, canvasWidth, canvasHeight } = useEditorStore();
@@ -527,12 +530,29 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
           <div className="space-y-2">
             <SectionLabel>Texte</SectionLabel>
             <div className="flex gap-1.5">
-              <Select value={props.fontFamily ?? "Arial"} onValueChange={(v) => v && update("fontFamily", v)}>
+              <Select value={props.fontFamily ?? "Inter"} onValueChange={(v) => {
+                if (!v) return;
+                loadGoogleFont(v);
+                update("fontFamily", v);
+              }}>
                 <SelectTrigger className="h-7 flex-1 rounded-lg border-black/[0.08] text-[12px] shadow-none"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {FONTS.map((f) => (
-                    <SelectItem key={f} value={f}><span style={{ fontFamily: f }}>{f}</span></SelectItem>
-                  ))}
+                <SelectContent className="max-h-72">
+                  {CATEGORY_ORDER.map((cat) => {
+                    const fonts = FONTS_BY_CATEGORY[cat];
+                    if (fonts.length === 0) return null;
+                    return (
+                      <div key={cat}>
+                        <div className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">
+                          {CATEGORY_LABELS[cat]}
+                        </div>
+                        {fonts.map((f) => (
+                          <SelectItem key={f.name} value={f.name}>
+                            <span style={{ fontFamily: f.name }}>{f.name}</span>
+                          </SelectItem>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </SelectContent>
               </Select>
               <Input
