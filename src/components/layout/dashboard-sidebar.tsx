@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/context";
 import {
   CalendarDays,
   Settings,
@@ -11,13 +12,14 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { href: "/events", label: "Événements", icon: CalendarDays },
-  { href: "/settings", label: "Paramètres", icon: Settings },
-  { href: "/billing", label: "Facturation", icon: CreditCard },
+  { href: "/events", labelKey: "events" as const, icon: CalendarDays },
+  { href: "/settings", labelKey: "parameters" as const, icon: Settings },
+  { href: "/billing", labelKey: "billing" as const, icon: CreditCard },
 ];
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   return (
     <aside className="hidden w-[260px] shrink-0 flex-col md:flex bg-[oklch(0.15_0.03_264)] text-[oklch(0.85_0.01_264)]">
@@ -34,7 +36,7 @@ export function DashboardSidebar() {
       {/* Navigation */}
       <nav className="flex flex-col gap-1 p-3 pt-4">
         <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/30">
-          Menu
+          {t("dashboard", "menu")}
         </p>
         {navItems.map((item) => {
           const isActive =
@@ -54,7 +56,7 @@ export function DashboardSidebar() {
                 "h-[18px] w-[18px] transition-colors",
                 isActive ? "text-[oklch(0.75_0.15_264)]" : "text-white/40 group-hover:text-white/60"
               )} />
-              {item.label}
+              {t("dashboard", item.labelKey)}
             </Link>
           );
         })}
@@ -65,7 +67,7 @@ export function DashboardSidebar() {
 
       {/* Footer */}
       <div className="border-t border-white/[0.06] px-5 py-4">
-        <p className="text-[11px] text-white/20">EventMediaKit v0.1</p>
+        <p className="text-[11px] text-white/20">{t("dashboard", "version")}</p>
       </div>
     </aside>
   );

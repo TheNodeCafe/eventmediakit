@@ -15,6 +15,7 @@ import { extractFontsFromCanvasJson, loadMultipleFonts } from "@/lib/fonts/googl
 import type { TemplateFormat, VariableFieldDefinition, ParticipantCategory } from "@/types";
 import { Save, Eye, ArrowLeft, Tag, CheckCircle, AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n/context";
 
 interface TemplateEditorProps {
   templateId?: string;
@@ -35,11 +36,11 @@ interface TemplateEditorProps {
   }) => Promise<void>;
 }
 
-const formats: { key: TemplateFormat; label: string }[] = [
-  { key: "square_1x1", label: "Carré" },
-  { key: "story_9x16", label: "Story" },
-  { key: "landscape_16x9", label: "Paysage" },
-  { key: "post_4x5", label: "Post 4:5" },
+const formatKeys: { key: TemplateFormat; labelKey: string }[] = [
+  { key: "square_1x1", labelKey: "square" },
+  { key: "story_9x16", labelKey: "story" },
+  { key: "landscape_16x9", labelKey: "landscape" },
+  { key: "post_4x5", labelKey: "post" },
 ];
 
 export function TemplateEditor({
@@ -62,6 +63,7 @@ export function TemplateEditor({
   const [layersKey, setLayersKey] = useState(0);
   const { isDirty, setIsDirty, format, canvasWidth, canvasHeight, setFormat } =
     useEditorStore();
+  const { t } = useI18n();
 
   // Load Google Fonts used in the canvas JSON on initial load
   useEffect(() => {
@@ -120,7 +122,7 @@ export function TemplateEditor({
     } catch (err) {
       console.error("[editor] Save failed:", err);
       setSaveStatus("error");
-      setSaveError(err instanceof Error ? err.message : "Erreur de sauvegarde");
+      setSaveError(err instanceof Error ? err.message : t("editor", "saveErrorMsg"));
     } finally {
       setSaving(false);
     }
@@ -162,7 +164,7 @@ export function TemplateEditor({
           <Link
             href={backUrl ?? `/events/${eventId}/templates`}
             className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-black/[0.04] hover:text-foreground"
-            title="Retour"
+            title={t("editor", "back")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
@@ -172,7 +174,7 @@ export function TemplateEditor({
           <Input
             value={name}
             onChange={(e) => { setName(e.target.value); setIsDirty(true); }}
-            placeholder="Nom du template"
+            placeholder={t("editor", "templateName")}
             className="h-7 w-44 border-transparent bg-transparent text-[13px] font-medium shadow-none placeholder:text-muted-foreground/40 hover:bg-black/[0.03] focus:border-primary/30 focus:bg-white focus:shadow-none"
           />
 
@@ -180,7 +182,7 @@ export function TemplateEditor({
 
           {/* Format selector pills */}
           <div className="flex items-center gap-1 rounded-full bg-black/[0.04] p-0.5">
-            {formats.map((f) => {
+            {formatKeys.map((f) => {
               const preset = FORMAT_PRESETS[f.key];
               const isActive = format === f.key;
               return (
@@ -193,7 +195,7 @@ export function TemplateEditor({
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {f.label}
+                  {t("editor", f.labelKey)}
                 </button>
               );
             })}
@@ -243,7 +245,7 @@ export function TemplateEditor({
             }`}
           >
             <Eye className="mr-1.5 h-3.5 w-3.5" />
-            {previewMode ? "Quitter" : "Aperçu"}
+            {previewMode ? t("editor", "exitPreview") : t("editor", "preview")}
           </Button>
 
           {/* Save button with status */}
@@ -262,22 +264,22 @@ export function TemplateEditor({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                 </svg>
-                Sauvegarde...
+                {t("editor", "saving")}
               </>
             ) : saveStatus === "success" ? (
               <>
                 <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
-                Sauvegardé
+                {t("editor", "saved")}
               </>
             ) : saveStatus === "error" ? (
               <>
                 <AlertTriangle className="mr-1.5 h-3.5 w-3.5" />
-                Erreur
+                {t("editor", "saveError")}
               </>
             ) : (
               <>
                 <Save className="mr-1.5 h-3.5 w-3.5" />
-                Sauver{isDirty && " *"}
+                {t("editor", "save")}{isDirty && " *"}
               </>
             )}
           </Button>

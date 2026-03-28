@@ -4,6 +4,7 @@ import { use } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n/context";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -80,12 +81,15 @@ export default function StatsPage({
 }) {
   const { eventId } = use(params);
   const { data: stats, isLoading } = useEventStats(eventId);
+  const { t, locale } = useI18n();
+
+  const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
 
   const statCards = [
-    { label: "Participants", value: stats?.total ?? 0 },
-    { label: "Liens envoyés", value: stats?.invited ?? 0 },
-    { label: "Liens ouverts", value: stats?.opened ?? 0 },
-    { label: "Téléchargements", value: stats?.totalGenerations ?? 0 },
+    { label: t("stats", "participants"), value: stats?.total ?? 0 },
+    { label: t("stats", "linksSent"), value: stats?.invited ?? 0 },
+    { label: t("stats", "linksOpened"), value: stats?.opened ?? 0 },
+    { label: t("stats", "downloads"), value: stats?.totalGenerations ?? 0 },
   ];
 
   return (
@@ -98,9 +102,9 @@ export default function StatsPage({
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Statistiques</h1>
+          <h1 className="text-2xl font-bold">{t("stats", "title")}</h1>
           <p className="text-muted-foreground">
-            Suivez l&apos;engagement de vos participants
+            {t("stats", "subtitle")}
           </p>
         </div>
       </div>
@@ -116,7 +120,7 @@ export default function StatsPage({
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {isLoading ? "—" : stat.value.toLocaleString("fr-FR")}
+                {isLoading ? "—" : stat.value.toLocaleString(dateLocale)}
               </div>
             </CardContent>
           </Card>
@@ -127,21 +131,21 @@ export default function StatsPage({
       {stats?.templateStats && stats.templateStats.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Téléchargements par template</CardTitle>
+            <CardTitle>{t("stats", "perTemplate")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Template</TableHead>
-                  <TableHead className="text-right">Téléchargements</TableHead>
+                  <TableHead>{t("stats", "template")}</TableHead>
+                  <TableHead className="text-right">{t("stats", "downloads")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {stats.templateStats.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-medium">{t.name}</TableCell>
-                    <TableCell className="text-right">{t.count}</TableCell>
+                {stats.templateStats.map((tpl) => (
+                  <TableRow key={tpl.id}>
+                    <TableCell className="font-medium">{tpl.name}</TableCell>
+                    <TableCell className="text-right">{tpl.count}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -153,8 +157,7 @@ export default function StatsPage({
           <CardContent className="flex flex-col items-center justify-center py-12">
             <BarChart3 className="mb-4 h-12 w-12 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              Les statistiques apparaîtront une fois les premiers visuels
-              générés
+              {t("stats", "noStats")}
             </p>
           </CardContent>
         </Card>

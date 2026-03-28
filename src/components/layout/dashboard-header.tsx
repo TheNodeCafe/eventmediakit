@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LanguageToggle } from "@/lib/i18n/context";
+import { LanguageToggle, useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import {
   LogOut,
@@ -18,14 +18,15 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { href: "/events", label: "Événements", icon: CalendarDays },
-  { href: "/settings", label: "Paramètres", icon: Settings },
-  { href: "/billing", label: "Facturation", icon: CreditCard },
+  { href: "/events", labelKey: "events" as const, icon: CalendarDays },
+  { href: "/settings", labelKey: "parameters" as const, icon: Settings },
+  { href: "/billing", labelKey: "billing" as const, icon: CreditCard },
 ];
 
 export function DashboardHeader() {
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useI18n();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   async function handleLogout() {
@@ -67,7 +68,7 @@ export function DashboardHeader() {
             className="gap-2 text-[13px] font-medium text-muted-foreground/70 transition-colors hover:text-foreground"
           >
             <LogOut className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Déconnexion</span>
+            <span className="hidden sm:inline">{t("dashboard", "disconnect")}</span>
           </Button>
         </div>
       </header>
@@ -106,7 +107,7 @@ export function DashboardHeader() {
             {/* Nav */}
             <nav className="flex flex-col gap-1 p-3 pt-4">
               <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/30">
-                Menu
+                {t("dashboard", "menu")}
               </p>
               {navItems.map((item) => {
                 const isActive =
@@ -129,7 +130,7 @@ export function DashboardHeader() {
                         isActive ? "text-[oklch(0.75_0.15_264)]" : "text-white/40"
                       )}
                     />
-                    {item.label}
+                    {t("dashboard", item.labelKey)}
                   </Link>
                 );
               })}
@@ -145,7 +146,7 @@ export function DashboardHeader() {
                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white/50 transition-all hover:bg-white/[0.06] hover:text-white/80"
               >
                 <LogOut className="h-[18px] w-[18px] text-white/40" />
-                Déconnexion
+                {t("dashboard", "disconnect")}
               </button>
             </div>
           </div>

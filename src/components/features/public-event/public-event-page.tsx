@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Download, Loader2, Lock, ImageIcon, Sparkles } from "lucide-react";
 import { TemplatePreview } from "../participant-portal/template-preview";
 import { ImageCropEditor } from "./image-crop-editor";
-import { LanguageToggle } from "@/lib/i18n/context";
+import { LanguageToggle, useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import { FORMAT_PRESETS } from "@/lib/fabric/format-presets";
 import { extractFontsFromCanvasJson, loadMultipleFonts } from "@/lib/fonts/google-fonts";
@@ -87,6 +87,7 @@ export function PublicEventPage({
   templates,
   fieldDefinitions,
 }: PublicEventPageProps) {
+  const { t, locale } = useI18n();
   const [authenticated, setAuthenticated] = useState(!event.access_password);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
@@ -227,22 +228,22 @@ export function PublicEventPage({
                 </div>
               )}
               <h1 className="text-xl font-bold tracking-tight">{event.name}</h1>
-              <p className="mt-2 text-sm text-muted-foreground">Entrez le mot de passe pour accéder au media kit</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t("publicPage", "enterPassword")}</p>
             </div>
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
                 <Input
                   type="password"
-                  placeholder="Mot de passe"
+                  placeholder={t("publicPage", "password")}
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setPasswordError(false); }}
                   className="h-11 rounded-xl pl-10"
                 />
               </div>
-              {passwordError && <p className="text-sm font-medium text-destructive">Mot de passe incorrect</p>}
+              {passwordError && <p className="text-sm font-medium text-destructive">{t("publicPage", "wrongPassword")}</p>}
               <Button type="submit" className="h-11 w-full rounded-xl font-semibold" style={primaryColor ? { backgroundColor: primaryColor } : undefined}>
-                Accéder au media kit
+                {t("publicPage", "accessMediaKit")}
               </Button>
             </form>
           </CardContent>
@@ -274,8 +275,8 @@ export function PublicEventPage({
                 <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">{event.name}</h1>
                 {showDates && event.start_date && (
                   <p className="mt-1.5 text-sm font-medium text-white/60">
-                    {new Date(event.start_date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                    {event.end_date && ` — ${new Date(event.end_date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`}
+                    {new Date(event.start_date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", { day: "numeric", month: "long", year: "numeric" })}
+                    {event.end_date && ` — ${new Date(event.end_date).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", { day: "numeric", month: "long", year: "numeric" })}`}
                   </p>
                 )}
               </div>
@@ -329,8 +330,8 @@ export function PublicEventPage({
           <>
             {/* Format selector — top */}
             <div className="mb-8">
-              <h2 className="mb-1 text-lg font-bold tracking-tight">Choisissez votre format</h2>
-              <p className="mb-4 text-[13px] text-muted-foreground">Sélectionnez un format puis personnalisez votre visuel</p>
+              <h2 className="mb-1 text-lg font-bold tracking-tight">{t("publicPage", "chooseFormat")}</h2>
+              <p className="mb-4 text-[13px] text-muted-foreground">{t("publicPage", "chooseFormatDesc")}</p>
 
               <div className="flex flex-wrap gap-3">
                 {visibleTemplates.map((template) => {
@@ -376,9 +377,9 @@ export function PublicEventPage({
                 {/* Left: variable fields */}
                 <div className="flex-1 space-y-5 md:max-w-md">
                   <div>
-                    <h3 className="mb-1 text-base font-bold tracking-tight">Personnalisez votre visuel</h3>
+                    <h3 className="mb-1 text-base font-bold tracking-tight">{t("publicPage", "customize")}</h3>
                     <p className="text-[13px] text-muted-foreground">
-                      Remplissez les champs, l&apos;aperçu se met à jour en temps réel
+                      {t("publicPage", "customizeDesc")}
                     </p>
                   </div>
 
@@ -456,12 +457,12 @@ export function PublicEventPage({
                     {downloading[selectedTemplate.id] ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Génération en cours...
+                        {t("publicPage", "downloading")}
                       </>
                     ) : (
                       <>
                         <Download className="mr-2 h-4 w-4" />
-                        Télécharger le visuel
+                        {t("publicPage", "download")}
                       </>
                     )}
                   </Button>
@@ -470,7 +471,7 @@ export function PublicEventPage({
                 {/* Right: preview sticky */}
                 <div className="w-full flex-1 md:sticky md:top-8 md:self-start">
                   <div className="mb-2 flex items-center justify-between text-[12px]">
-                    <span className="text-muted-foreground">Aperçu en direct</span>
+                    <span className="text-muted-foreground">{t("publicPage", "livePreview")}</span>
                     <span className="font-medium">
                       {FORMAT_PRESETS[selectedTemplate.format as TemplateFormat]?.label ?? selectedTemplate.format}
                     </span>
@@ -490,7 +491,7 @@ export function PublicEventPage({
           </>
         ) : (
           <div className="flex h-48 items-center justify-center rounded-2xl border-2 border-dashed">
-            <p className="text-muted-foreground">Aucun template publié pour cet événement</p>
+            <p className="text-muted-foreground">{t("publicPage", "noTemplates")}</p>
           </div>
         )}
       </div>
@@ -499,7 +500,7 @@ export function PublicEventPage({
       <footer className="border-t border-border/20 bg-white">
         <div className="mx-auto max-w-6xl px-6 py-5">
           <div className="flex items-center justify-between text-[12px] text-muted-foreground/40">
-            <span>Propulsé par EventMediaKit</span>
+            <span>{t("publicPage", "poweredBy")}</span>
             {showOrgName && <span>{org.name}</span>}
           </div>
         </div>

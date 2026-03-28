@@ -3,6 +3,7 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useEvent } from "@/hooks/use-events";
+import { useI18n } from "@/lib/i18n/context";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -25,44 +26,6 @@ import {
   PaintBucket,
 } from "lucide-react";
 
-const modules = [
-  {
-    href: "templates",
-    label: "Templates",
-    description: "Créez et gérez vos modèles de visuels",
-    icon: Palette,
-    color: "bg-violet-500/10 text-violet-600",
-  },
-  {
-    href: "participants",
-    label: "Participants",
-    description: "Importez et invitez vos participants",
-    icon: Users,
-    color: "bg-blue-500/10 text-blue-600",
-  },
-  {
-    href: "categories",
-    label: "Catégories",
-    description: "Gérez les catégories de participants",
-    icon: Tag,
-    color: "bg-amber-500/10 text-amber-600",
-  },
-  {
-    href: "settings",
-    label: "Personnalisation",
-    description: "Couleurs, logo, image de fond de la page publique",
-    icon: PaintBucket,
-    color: "bg-pink-500/10 text-pink-600",
-  },
-  {
-    href: "stats",
-    label: "Statistiques",
-    description: "Suivez les téléchargements et l'engagement",
-    icon: BarChart3,
-    color: "bg-emerald-500/10 text-emerald-600",
-  },
-];
-
 export default function EventDetailPage({
   params,
 }: {
@@ -70,6 +33,47 @@ export default function EventDetailPage({
 }) {
   const { eventId } = use(params);
   const { data: event, isLoading } = useEvent(eventId);
+  const { t, locale } = useI18n();
+
+  const modules = [
+    {
+      href: "templates",
+      label: t("eventDetail", "templates"),
+      description: t("eventDetail", "templatesDesc"),
+      icon: Palette,
+      color: "bg-violet-500/10 text-violet-600",
+    },
+    {
+      href: "participants",
+      label: t("eventDetail", "participants"),
+      description: t("eventDetail", "participantsDesc"),
+      icon: Users,
+      color: "bg-blue-500/10 text-blue-600",
+    },
+    {
+      href: "categories",
+      label: t("eventDetail", "categories"),
+      description: t("eventDetail", "categoriesDesc"),
+      icon: Tag,
+      color: "bg-amber-500/10 text-amber-600",
+    },
+    {
+      href: "settings",
+      label: t("eventDetail", "settings"),
+      description: t("eventDetail", "settingsDesc"),
+      icon: PaintBucket,
+      color: "bg-pink-500/10 text-pink-600",
+    },
+    {
+      href: "stats",
+      label: t("eventDetail", "stats"),
+      description: t("eventDetail", "statsDesc"),
+      icon: BarChart3,
+      color: "bg-emerald-500/10 text-emerald-600",
+    },
+  ];
+
+  const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
 
   if (isLoading) {
     return (
@@ -119,22 +123,22 @@ export default function EventDetailPage({
               className="shrink-0 text-[11px] font-medium"
             >
               {event.status === "draft"
-                ? "Brouillon"
+                ? t("events", "draft")
                 : event.status === "active"
-                  ? "Actif"
-                  : "Archivé"}
+                  ? t("events", "active")
+                  : t("events", "archived")}
             </Badge>
             <StatusToggle eventId={eventId} currentStatus={event.status} />
           </div>
           {event.start_date && (
             <p className="mt-0.5 text-[13px] text-muted-foreground">
-              {new Date(event.start_date).toLocaleDateString("fr-FR", {
+              {new Date(event.start_date).toLocaleDateString(dateLocale, {
                 day: "numeric",
                 month: "long",
                 year: "numeric",
               })}
               {event.end_date &&
-                ` — ${new Date(event.end_date).toLocaleDateString("fr-FR", {
+                ` — ${new Date(event.end_date).toLocaleDateString(dateLocale, {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
@@ -148,7 +152,7 @@ export default function EventDetailPage({
       <Card className="border-border/40 bg-muted/30 shadow-sm">
         <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-foreground">URL publique du media kit</p>
+            <p className="text-[13px] font-semibold text-foreground">{t("eventDetail", "publicUrl")}</p>
             <p className="mt-0.5 truncate font-mono text-[13px] text-muted-foreground">
               {typeof window !== "undefined" ? window.location.origin : ""}/e/{event.slug}
             </p>
@@ -165,7 +169,7 @@ export default function EventDetailPage({
               }}
             >
               <Copy className="h-3 w-3" />
-              Copier
+              {t("eventDetail", "copy")}
             </Button>
             <a
               href={`/e/${event.slug}`}
@@ -178,7 +182,7 @@ export default function EventDetailPage({
               })}
             >
               <ExternalLink className="h-3 w-3" />
-              Ouvrir
+              {t("eventDetail", "open")}
             </a>
           </div>
         </CardContent>
@@ -187,7 +191,7 @@ export default function EventDetailPage({
       {/* Module cards */}
       <div>
         <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-          Modules
+          {t("eventDetail", "modules")}
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {modules.map((mod) => (
@@ -225,6 +229,7 @@ function StatusToggle({
 }) {
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
+  const { t } = useI18n();
 
   async function toggle() {
     setLoading(true);
@@ -246,7 +251,7 @@ function StatusToggle({
       disabled={loading}
       className="ml-auto h-8 rounded-lg text-[12px] font-medium border-border/60"
     >
-      {currentStatus === "active" ? "Désactiver" : "Activer"}
+      {currentStatus === "active" ? t("events", "deactivate") : t("events", "activate")}
     </Button>
   );
 }

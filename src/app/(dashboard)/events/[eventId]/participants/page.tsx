@@ -21,7 +21,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -43,11 +42,7 @@ import {
   useDeleteParticipant,
 } from "@/hooks/use-participants";
 import { useCategories } from "@/hooks/use-categories";
-
-const statusLabels: Record<string, string> = {
-  active: "Actif",
-  completed: "Complété",
-};
+import { useI18n } from "@/lib/i18n/context";
 
 const statusVariants: Record<string, "default" | "secondary" | "outline"> = {
   active: "secondary",
@@ -63,6 +58,13 @@ export default function ParticipantsPage({
   const { data: participants, isLoading } = useParticipants(eventId);
   const { data: categories } = useCategories(eventId);
   const deleteParticipant = useDeleteParticipant(eventId);
+  const { t } = useI18n();
+
+  const statusLabels: Record<string, string> = {
+    active: t("participants", "active"),
+    completed: t("participants", "completed"),
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -74,9 +76,9 @@ export default function ParticipantsPage({
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Participants</h1>
+            <h1 className="text-2xl font-bold">{t("participants", "title")}</h1>
             <p className="text-muted-foreground">
-              {participants?.length ?? 0} participant(s)
+              {participants?.length ?? 0} {t("participants", "count")}
             </p>
           </div>
         </div>
@@ -86,7 +88,7 @@ export default function ParticipantsPage({
             className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             <Upload className="mr-2 h-4 w-4" />
-            Import CSV
+            {t("participants", "importCsv")}
           </Link>
           <AddParticipantDialog
             eventId={eventId}
@@ -109,9 +111,9 @@ export default function ParticipantsPage({
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Users className="mb-4 h-12 w-12 text-muted-foreground" />
-            <h3 className="mb-2 text-lg font-medium">Aucun participant</h3>
+            <h3 className="mb-2 text-lg font-medium">{t("participants", "noParticipants")}</h3>
             <p className="mb-4 text-sm text-muted-foreground">
-              Importez un CSV ou ajoutez des participants manuellement
+              {t("participants", "noParticipantsDesc")}
             </p>
           </CardContent>
         </Card>
@@ -120,10 +122,10 @@ export default function ParticipantsPage({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Catégorie</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="w-16">Actions</TableHead>
+                <TableHead>{t("participants", "email")}</TableHead>
+                <TableHead>{t("participants", "category")}</TableHead>
+                <TableHead>{t("participants", "status")}</TableHead>
+                <TableHead className="w-16">{t("participants", "actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -141,11 +143,11 @@ export default function ParticipantsPage({
                       variant="ghost"
                       size="icon-xs"
                       onClick={() => {
-                        if (confirm("Supprimer ce participant ?")) {
+                        if (confirm(t("participants", "deleteConfirm"))) {
                           deleteParticipant.mutate(p.id);
                         }
                       }}
-                      title="Supprimer"
+                      title={t("participants", "delete")}
                     >
                       <Trash2 className="h-3 w-3 text-destructive" />
                     </Button>
@@ -171,6 +173,7 @@ function AddParticipantDialog({
   const [email, setEmail] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const createParticipant = useCreateParticipant(eventId);
+  const { t } = useI18n();
 
   async function handleAdd() {
     if (!email.trim() || !categoryId) return;
@@ -187,19 +190,19 @@ function AddParticipantDialog({
     <>
       <Button size="sm" onClick={() => setOpen(true)}>
         <Plus className="mr-2 h-4 w-4" />
-        Ajouter
+        {t("participants", "add")}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Ajouter un participant</DialogTitle>
+          <DialogTitle>{t("participants", "addTitle")}</DialogTitle>
           <DialogDescription>
-            Le participant recevra un lien magique par email
+            {t("participants", "addDesc")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label>Email</Label>
+            <Label>{t("participants", "email")}</Label>
             <Input
               type="email"
               placeholder="participant@example.com"
@@ -208,10 +211,10 @@ function AddParticipantDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label>Catégorie</Label>
+            <Label>{t("participants", "category")}</Label>
             <Select value={categoryId} onValueChange={(v) => setCategoryId(v ?? "")}>
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une catégorie" />
+                <SelectValue placeholder={t("participants", "selectCategory")} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (
@@ -227,7 +230,7 @@ function AddParticipantDialog({
             disabled={createParticipant.isPending || !email || !categoryId}
             className="w-full"
           >
-            {createParticipant.isPending ? "Ajout..." : "Ajouter"}
+            {createParticipant.isPending ? t("participants", "adding") : t("participants", "add")}
           </Button>
         </div>
       </DialogContent>

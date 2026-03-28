@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventSchema, type EventFormData } from "@/lib/validations/event";
 import { useCreateEvent } from "@/hooks/use-events";
+import { useI18n } from "@/lib/i18n/context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ import Link from "next/link";
 export default function NewEventPage() {
   const router = useRouter();
   const createEvent = useCreateEvent();
+  const { t } = useI18n();
 
   const {
     register,
@@ -55,18 +57,18 @@ export default function NewEventPage() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight">Nouvel événement</h1>
+          <h1 className="text-[22px] font-bold tracking-tight">{t("newEvent", "title")}</h1>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
-            Configurez les informations de base de votre événement
+            {t("newEvent", "subtitle")}
           </p>
         </div>
       </div>
 
       <Card className="border-border/40 shadow-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-[16px] font-semibold">Informations générales</CardTitle>
+          <CardTitle className="text-[16px] font-semibold">{t("newEvent", "generalInfo")}</CardTitle>
           <CardDescription className="text-[13px]">
-            Ces informations seront visibles par vos participants
+            {t("newEvent", "infoDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -75,17 +77,17 @@ export default function NewEventPage() {
               <svg className="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="currentColor">
                 <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 10.5a.75.75 0 110-1.5.75.75 0 010 1.5zM8.75 4.75a.75.75 0 00-1.5 0v3.5a.75.75 0 001.5 0v-3.5z" />
               </svg>
-              {createEvent.error?.message || "Erreur lors de la création"}
+              {createEvent.error?.message || t("newEvent", "createError")}
             </div>
           )}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-[13px] font-medium">
-                Nom de l&apos;événement
+                {t("newEvent", "eventName")}
               </Label>
               <Input
                 id="name"
-                placeholder="Salon de l'Innovation 2026"
+                placeholder={t("newEvent", "eventNamePlaceholder")}
                 {...register("name")}
                 className="h-10 rounded-lg text-[14px]"
               />
@@ -98,11 +100,11 @@ export default function NewEventPage() {
 
             <div className="space-y-2">
               <Label htmlFor="description" className="text-[13px] font-medium">
-                Description <span className="font-normal text-muted-foreground">(optionnel)</span>
+                {t("newEvent", "description")} <span className="font-normal text-muted-foreground">({t("newEvent", "optional")})</span>
               </Label>
               <Textarea
                 id="description"
-                placeholder="Décrivez votre événement..."
+                placeholder={t("newEvent", "descPlaceholder")}
                 {...register("description")}
                 className="min-h-[100px] rounded-lg text-[14px] resize-none"
               />
@@ -110,7 +112,7 @@ export default function NewEventPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="start_date" className="text-[13px] font-medium">Date de début</Label>
+                <Label htmlFor="start_date" className="text-[13px] font-medium">{t("newEvent", "startDate")}</Label>
                 <Input
                   id="start_date"
                   type="date"
@@ -119,7 +121,7 @@ export default function NewEventPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="end_date" className="text-[13px] font-medium">Date de fin</Label>
+                <Label htmlFor="end_date" className="text-[13px] font-medium">{t("newEvent", "endDate")}</Label>
                 <Input
                   id="end_date"
                   type="date"
@@ -131,17 +133,17 @@ export default function NewEventPage() {
 
             <div className="space-y-2">
               <Label htmlFor="access_password" className="text-[13px] font-medium">
-                Mot de passe d&apos;accès <span className="font-normal text-muted-foreground">(optionnel)</span>
+                {t("newEvent", "password")} <span className="font-normal text-muted-foreground">({t("newEvent", "optional")})</span>
               </Label>
               <Input
                 id="access_password"
                 type="text"
-                placeholder="Laisser vide pour un accès public"
+                placeholder={t("newEvent", "passwordPlaceholder")}
                 {...register("access_password")}
                 className="h-10 rounded-lg text-[14px]"
               />
               <p className="text-[12px] text-muted-foreground">
-                Si défini, les visiteurs devront saisir ce mot de passe pour accéder au media kit
+                {t("newEvent", "passwordHint")}
               </p>
             </div>
 
@@ -153,14 +155,14 @@ export default function NewEventPage() {
                   className: "rounded-lg h-10 text-[13px] font-medium border-border/60",
                 })}
               >
-                Annuler
+                {t("newEvent", "cancel")}
               </Link>
               <Button
                 type="submit"
                 disabled={createEvent.isPending}
                 className="rounded-lg h-10 text-[13px] font-semibold shadow-sm shadow-primary/15 px-5"
               >
-                {createEvent.isPending ? "Création..." : "Créer l'événement"}
+                {createEvent.isPending ? t("newEvent", "creating") : t("newEvent", "create")}
               </Button>
             </div>
           </form>

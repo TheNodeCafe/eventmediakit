@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useI18n } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,20 +38,21 @@ function useOrganization() {
   });
 }
 
-const tabs = [
-  { id: "org", label: "Organisation", icon: Building2 },
-  { id: "account", label: "Compte", icon: User },
-  { id: "security", label: "Sécurité", icon: Lock },
-  { id: "danger", label: "Danger", icon: Trash2 },
-] as const;
-
-type TabId = (typeof tabs)[number]["id"];
+type TabId = "org" | "account" | "security" | "danger";
 
 export default function SettingsPage() {
   const { data, isLoading } = useOrganization();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabId>("org");
+
+  const tabs = [
+    { id: "org" as const, label: t("settings", "tabOrg"), icon: Building2 },
+    { id: "account" as const, label: t("settings", "tabAccount"), icon: User },
+    { id: "security" as const, label: t("settings", "tabSecurity"), icon: Lock },
+    { id: "danger" as const, label: t("settings", "tabDanger"), icon: Trash2 },
+  ];
 
   // Org form
   const [orgName, setOrgName] = useState("");
@@ -66,6 +68,8 @@ export default function SettingsPage() {
 
   // Delete
   const [deleteConfirm, setDeleteConfirm] = useState("");
+
+  const deleteKeyword = t("settings", "deleteConfirm");
 
   useEffect(() => {
     if (data?.organization) {
@@ -91,11 +95,11 @@ export default function SettingsPage() {
   async function handleChangePassword() {
     setPwMessage(null);
     if (newPassword !== confirmPassword) {
-      setPwMessage({ type: "error", text: "Les mots de passe ne correspondent pas" });
+      setPwMessage({ type: "error", text: t("settings", "passwordMismatch") });
       return;
     }
     if (newPassword.length < 6) {
-      setPwMessage({ type: "error", text: "Minimum 6 caractères" });
+      setPwMessage({ type: "error", text: t("settings", "minChars") });
       return;
     }
     setPwSaving(true);
@@ -107,16 +111,16 @@ export default function SettingsPage() {
     const result = await res.json();
     setPwSaving(false);
     if (result.success) {
-      setPwMessage({ type: "success", text: "Mot de passe modifié" });
+      setPwMessage({ type: "success", text: t("settings", "changed") });
       setNewPassword("");
       setConfirmPassword("");
     } else {
-      setPwMessage({ type: "error", text: result.error || "Erreur" });
+      setPwMessage({ type: "error", text: result.error || "Error" });
     }
   }
 
   async function handleDeleteAccount() {
-    if (deleteConfirm !== "SUPPRIMER") return;
+    if (deleteConfirm !== deleteKeyword) return;
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
@@ -148,8 +152,8 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-6">
-        <h1 className="text-[22px] font-bold tracking-tight">Paramètres</h1>
-        <p className="mt-1 text-[13px] text-muted-foreground">Gérez votre organisation et votre compte</p>
+        <h1 className="text-[22px] font-bold tracking-tight">{t("settings", "title")}</h1>
+        <p className="mt-1 text-[13px] text-muted-foreground">{t("settings", "subtitle")}</p>
       </div>
 
       {/* Tabs */}
@@ -187,11 +191,11 @@ export default function SettingsPage() {
                 )}
                 <Button variant="outline" size="sm" onClick={handleLogoUpload} className="text-[11px]">
                   <ImageIcon className="mr-1 h-3 w-3" />
-                  {orgLogo ? "Changer" : "Logo"}
+                  {orgLogo ? t("settings", "change") : t("settings", "logo")}
                 </Button>
                 {orgLogo && (
                   <button onClick={() => setOrgLogo(null)} className="text-[11px] text-muted-foreground hover:text-destructive">
-                    Retirer
+                    {t("settings", "remove")}
                   </button>
                 )}
               </div>
@@ -199,15 +203,15 @@ export default function SettingsPage() {
               {/* Fields */}
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label className="text-[12px] font-medium">Nom de l&apos;organisation</Label>
+                  <Label className="text-[12px] font-medium">{t("settings", "orgName")}</Label>
                   <Input value={orgName} onChange={(e) => setOrgName(e.target.value)} className="h-9 rounded-lg text-[13px]" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[12px] font-medium">Identifiant</Label>
+                  <Label className="text-[12px] font-medium">{t("settings", "identifier")}</Label>
                   <Input value={(data?.organization?.slug as string) ?? ""} disabled className="h-9 rounded-lg bg-muted/50 text-[13px]" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[12px] font-medium">Plan actuel</Label>
+                  <Label className="text-[12px] font-medium">{t("settings", "currentPlan")}</Label>
                   <Input
                     value={((data?.organization?.plan as string) ?? "starter").charAt(0).toUpperCase() + ((data?.organization?.plan as string) ?? "starter").slice(1)}
                     disabled
@@ -216,7 +220,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex items-end">
                   <Button onClick={handleSaveOrg} disabled={orgSaving} className="h-9 rounded-lg text-[12px]">
-                    {orgSaved ? <><CheckCircle className="mr-1.5 h-3.5 w-3.5" />Enregistré</> : <><Save className="mr-1.5 h-3.5 w-3.5" />{orgSaving ? "..." : "Enregistrer"}</>}
+                    {orgSaved ? <><CheckCircle className="mr-1.5 h-3.5 w-3.5" />{t("settings", "saved")}</> : <><Save className="mr-1.5 h-3.5 w-3.5" />{orgSaving ? t("settings", "saving") : t("settings", "save")}</>}
                   </Button>
                 </div>
               </div>
@@ -230,23 +234,23 @@ export default function SettingsPage() {
           <CardContent className="p-6">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1.5">
-                <Label className="text-[12px] font-medium">Email</Label>
+                <Label className="text-[12px] font-medium">{t("settings", "email")}</Label>
                 <Input value={data?.user?.email ?? ""} disabled className="h-9 rounded-lg bg-muted/50 text-[13px]" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[12px] font-medium">Rôle</Label>
+                <Label className="text-[12px] font-medium">{t("settings", "role")}</Label>
                 <Input
-                  value={data?.role === "owner" ? "Propriétaire" : data?.role === "admin" ? "Administrateur" : "Membre"}
+                  value={data?.role === "owner" ? t("settings", "owner") : data?.role === "admin" ? t("settings", "admin") : t("settings", "member")}
                   disabled
                   className="h-9 rounded-lg bg-muted/50 text-[13px]"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[12px] font-medium">ID utilisateur</Label>
+                <Label className="text-[12px] font-medium">{t("settings", "userId")}</Label>
                 <Input value={data?.user?.id ?? ""} disabled className="h-9 rounded-lg bg-muted/50 font-mono text-[11px]" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[12px] font-medium">ID organisation</Label>
+                <Label className="text-[12px] font-medium">{t("settings", "orgId")}</Label>
                 <Input value={(data?.organization?.id as string) ?? ""} disabled className="h-9 rounded-lg bg-muted/50 font-mono text-[11px]" />
               </div>
             </div>
@@ -268,17 +272,17 @@ export default function SettingsPage() {
             )}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1.5">
-                <Label className="text-[12px] font-medium">Nouveau mot de passe</Label>
-                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Minimum 6 caractères" className="h-9 rounded-lg text-[13px]" />
+                <Label className="text-[12px] font-medium">{t("settings", "newPassword")}</Label>
+                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={t("settings", "minChars")} className="h-9 rounded-lg text-[13px]" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[12px] font-medium">Confirmer</Label>
-                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Retapez le mot de passe" className="h-9 rounded-lg text-[13px]" />
+                <Label className="text-[12px] font-medium">{t("settings", "confirmPassword")}</Label>
+                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={t("settings", "retypePassword")} className="h-9 rounded-lg text-[13px]" />
               </div>
             </div>
             <Button onClick={handleChangePassword} disabled={pwSaving || !newPassword || !confirmPassword} variant="outline" className="h-9 rounded-lg text-[12px]">
               <Lock className="mr-1.5 h-3.5 w-3.5" />
-              {pwSaving ? "Modification..." : "Modifier le mot de passe"}
+              {pwSaving ? t("settings", "changing") : t("settings", "changePassword")}
             </Button>
           </CardContent>
         </Card>
@@ -292,23 +296,23 @@ export default function SettingsPage() {
                 <AlertTriangle className="h-5 w-5 text-destructive" />
               </div>
               <div>
-                <h3 className="text-[14px] font-semibold">Supprimer le compte</h3>
+                <h3 className="text-[14px] font-semibold">{t("settings", "dangerTitle")}</h3>
                 <p className="mt-0.5 text-[12px] text-muted-foreground">
-                  Cette action est irréversible. Tous vos événements, templates et données seront définitivement supprimés.
+                  {t("settings", "dangerDesc")}
                 </p>
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1.5">
                 <Label className="text-[12px] font-medium">
-                  Tapez <span className="font-mono font-bold text-destructive">SUPPRIMER</span> pour confirmer
+                  {t("settings", "typeDeletePrompt")} <span className="font-mono font-bold text-destructive">{deleteKeyword}</span> {t("settings", "typeDeleteConfirm")}
                 </Label>
-                <Input value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} placeholder="SUPPRIMER" className="h-9 rounded-lg text-[13px]" />
+                <Input value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} placeholder={deleteKeyword} className="h-9 rounded-lg text-[13px]" />
               </div>
               <div className="flex items-end">
-                <Button variant="destructive" disabled={deleteConfirm !== "SUPPRIMER"} onClick={handleDeleteAccount} className="h-9 rounded-lg text-[12px]">
+                <Button variant="destructive" disabled={deleteConfirm !== deleteKeyword} onClick={handleDeleteAccount} className="h-9 rounded-lg text-[12px]">
                   <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                  Supprimer mon compte
+                  {t("settings", "deleteAccount")}
                 </Button>
               </div>
             </div>

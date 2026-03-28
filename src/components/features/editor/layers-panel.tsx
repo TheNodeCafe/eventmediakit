@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Canvas, FabricObject } from "fabric";
 import { useEditorStore } from "@/store/editor-store";
+import { useI18n } from "@/lib/i18n/context";
 import {
   Eye,
   EyeOff,
@@ -71,6 +72,7 @@ interface LayersPanelProps {
 export function LayersPanel({ canvas }: LayersPanelProps) {
   const [layers, setLayers] = useState<LayerItem[]>([]);
   const { selectedObjectId, setSelectedObjectId } = useEditorStore();
+  const { t } = useI18n();
 
   function syncLayers() {
     if (!canvas) {
@@ -205,7 +207,7 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
     <div className="flex flex-col">
       <div className="flex items-center justify-between px-3 py-2">
         <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-          Calques
+          {t("editor", "layers")}
         </h3>
         <span className="rounded-full bg-black/[0.04] px-1.5 py-0.5 text-[9px] font-medium tabular-nums text-muted-foreground/40">{layers.length}</span>
       </div>
@@ -213,7 +215,7 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
       <div className="flex-1 overflow-y-auto">
         {layers.length === 0 ? (
           <p className="px-3 py-6 text-center text-[11px] text-muted-foreground/30">
-            Ajoutez des elements
+            {t("editor", "addElements")}
           </p>
         ) : (
           <div className="space-y-px px-1.5 pb-2">
@@ -242,7 +244,7 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
                         handleToggleLock(layer.id);
                       }}
                       className="rounded-md p-1 text-muted-foreground/50 transition-colors hover:bg-black/[0.06] hover:text-foreground"
-                      title={layer.locked ? "Déverrouiller" : "Verrouiller"}
+                      title={layer.locked ? t("editor", "unlock") : t("editor", "lock")}
                     >
                       {layer.locked ? (
                         <Lock className="h-3 w-3 text-amber-500" />

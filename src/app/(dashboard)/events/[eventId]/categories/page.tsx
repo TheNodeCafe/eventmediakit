@@ -12,6 +12,7 @@ import {
   useCreateVariableField,
   useDeleteVariableField,
 } from "@/hooks/use-variable-fields";
+import { useI18n } from "@/lib/i18n/context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +40,7 @@ export default function CategoriesPage({
   params: Promise<{ eventId: string }>;
 }) {
   const { eventId } = use(params);
+  const { t } = useI18n();
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -47,17 +49,17 @@ export default function CategoriesPage({
             <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Configuration</h1>
+          <h1 className="text-2xl font-bold">{t("categoriesPage", "title")}</h1>
           <p className="text-muted-foreground">
-            Catégories de participants et champs variables
+            {t("categoriesPage", "subtitle")}
           </p>
         </div>
       </div>
 
       <Tabs defaultValue="categories">
         <TabsList>
-          <TabsTrigger value="categories">Catégories</TabsTrigger>
-          <TabsTrigger value="fields">Champs variables</TabsTrigger>
+          <TabsTrigger value="categories">{t("categoriesPage", "tabCategories")}</TabsTrigger>
+          <TabsTrigger value="fields">{t("categoriesPage", "tabFields")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="categories">
@@ -77,6 +79,7 @@ function CategoriesTab({ eventId }: { eventId: string }) {
   const { data: categories, isLoading } = useCategories(eventId);
   const createCategory = useCreateCategory(eventId);
   const deleteCategory = useDeleteCategory(eventId);
+  const { t } = useI18n();
 
   async function handleAdd() {
     if (!name.trim()) return;
@@ -87,22 +90,22 @@ function CategoriesTab({ eventId }: { eventId: string }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Catégories de participants</CardTitle>
+        <CardTitle>{t("categoriesPage", "categoriesTitle")}</CardTitle>
         <CardDescription>
-          Définissez les types de participants (Exposant, Speaker, Visiteur...)
+          {t("categoriesPage", "noCategoriesDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input
-            placeholder="Nom de la catégorie"
+            placeholder={t("categoriesPage", "categoryPlaceholder")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           />
           <Button onClick={handleAdd} disabled={createCategory.isPending}>
             <Plus className="mr-2 h-4 w-4" />
-            Ajouter
+            {t("categoriesPage", "addCategory")}
           </Button>
         </div>
 
@@ -114,7 +117,7 @@ function CategoriesTab({ eventId }: { eventId: string }) {
           </div>
         ) : categories?.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">
-            Aucune catégorie. Ajoutez-en une pour commencer.
+            {t("categoriesPage", "noCategories")}
           </p>
         ) : (
           <div className="space-y-2">
@@ -145,6 +148,7 @@ function VariableFieldsTab({ eventId }: { eventId: string }) {
   const [label, setLabel] = useState("");
   const [fieldType, setFieldType] = useState<FieldType>("text");
   const [required, setRequired] = useState(false);
+  const { t, locale } = useI18n();
 
   const { data: fields, isLoading } = useVariableFields(eventId);
   const createField = useCreateVariableField(eventId);
@@ -165,17 +169,17 @@ function VariableFieldsTab({ eventId }: { eventId: string }) {
   }
 
   const fieldTypeLabels: Record<FieldType, string> = {
-    text: "Texte",
-    textarea: "Texte long",
-    image: "Image",
+    text: t("categoriesPage", "text"),
+    textarea: t("categoriesPage", "textarea"),
+    image: t("categoriesPage", "image"),
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Champs variables</CardTitle>
+        <CardTitle>{t("categoriesPage", "fieldsTitle")}</CardTitle>
         <CardDescription>
-          Définissez les champs que les participants pourront remplir (max 10)
+          {t("categoriesPage", "noFieldsDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -183,7 +187,7 @@ function VariableFieldsTab({ eventId }: { eventId: string }) {
           <div className="grid gap-3 rounded-md border p-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label>Clé interne</Label>
+                <Label>{t("categoriesPage", "fieldKey")}</Label>
                 <Input
                   placeholder="first_name"
                   value={name}
@@ -191,9 +195,9 @@ function VariableFieldsTab({ eventId }: { eventId: string }) {
                 />
               </div>
               <div className="space-y-1">
-                <Label>Label affiché</Label>
+                <Label>{t("categoriesPage", "fieldLabel")}</Label>
                 <Input
-                  placeholder="Prénom"
+                  placeholder={locale === "fr" ? "Prénom" : "First name"}
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                 />
@@ -201,7 +205,7 @@ function VariableFieldsTab({ eventId }: { eventId: string }) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label>Type</Label>
+                <Label>{t("categoriesPage", "fieldType")}</Label>
                 <Select
                   value={fieldType}
                   onValueChange={(v) => setFieldType(v as FieldType)}
@@ -210,9 +214,9 @@ function VariableFieldsTab({ eventId }: { eventId: string }) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="text">Texte</SelectItem>
-                    <SelectItem value="textarea">Texte long</SelectItem>
-                    <SelectItem value="image">Image</SelectItem>
+                    <SelectItem value="text">{t("categoriesPage", "text")}</SelectItem>
+                    <SelectItem value="textarea">{t("categoriesPage", "textarea")}</SelectItem>
+                    <SelectItem value="image">{t("categoriesPage", "image")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -223,7 +227,7 @@ function VariableFieldsTab({ eventId }: { eventId: string }) {
                     checked={required}
                     onChange={(e) => setRequired(e.target.checked)}
                   />
-                  Obligatoire
+                  {t("categoriesPage", "required")}
                 </label>
               </div>
             </div>
@@ -233,7 +237,7 @@ function VariableFieldsTab({ eventId }: { eventId: string }) {
               className="w-fit"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Ajouter le champ
+              {t("categoriesPage", "addFieldBtn")}
             </Button>
           </div>
         )}
@@ -246,7 +250,7 @@ function VariableFieldsTab({ eventId }: { eventId: string }) {
           </div>
         ) : fields?.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">
-            Aucun champ variable. Ajoutez-en pour personnaliser vos templates.
+            {t("categoriesPage", "noFields")}
           </p>
         ) : (
           <div className="space-y-2">

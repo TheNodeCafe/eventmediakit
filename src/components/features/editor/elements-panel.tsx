@@ -17,20 +17,21 @@ import {
   Minus,
   Palette,
 } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 
 interface ElementsPanelProps {
   canvas: Canvas | null;
   onAdd: () => void;
 }
 
-const elements = [
-  { id: "heading", label: "Heading", icon: Heading, action: "heading" },
-  { id: "text", label: "Text", icon: Type, action: "text" },
-  { id: "rectangle", label: "Rectangle", icon: Square, action: "rect" },
-  { id: "circle", label: "Cercle", icon: CircleIcon, action: "circle" },
-  { id: "divider", label: "Séparateur", icon: Minus, action: "line" },
-  { id: "image", label: "Image", icon: ImagePlus, action: "image" },
-  { id: "gradient", label: "Dégradé", icon: Palette, action: "gradient" },
+const elementDefs = [
+  { id: "heading", labelKey: "heading", icon: Heading, action: "heading" },
+  { id: "text", labelKey: "text", icon: Type, action: "text" },
+  { id: "rectangle", labelKey: "rectangle", icon: Square, action: "rect" },
+  { id: "circle", labelKey: "circle", icon: CircleIcon, action: "circle" },
+  { id: "divider", labelKey: "separator", icon: Minus, action: "line" },
+  { id: "image", labelKey: "image", icon: ImagePlus, action: "image" },
+  { id: "gradient", labelKey: "gradient", icon: Palette, action: "gradient" },
 ];
 
 function getCanvasCenter(): { cx: number; cy: number } {
@@ -40,6 +41,7 @@ function getCanvasCenter(): { cx: number; cy: number } {
 
 export function ElementsPanel({ canvas, onAdd }: ElementsPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useI18n();
 
   async function handleAdd(action: string) {
     if (!canvas) return;
@@ -143,17 +145,17 @@ export function ElementsPanel({ canvas, onAdd }: ElementsPanelProps) {
       {/* Elements grid */}
       <div className="flex-1 overflow-y-auto p-3">
         <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-          Elements
+          {t("editor", "elements")}
         </h3>
         <div className="grid grid-cols-2 gap-1.5">
-          {elements.map((el) => (
+          {elementDefs.map((el) => (
             <button
               key={el.id}
               onClick={() => handleAdd(el.action)}
               className="group flex flex-col items-center gap-1.5 rounded-xl border border-black/[0.04] bg-white p-3 text-muted-foreground transition-all hover:border-primary/20 hover:shadow-sm hover:text-foreground active:scale-[0.97]"
             >
               <el.icon className="h-[18px] w-[18px] transition-colors group-hover:text-primary" />
-              <span className="text-[10px] font-medium">{el.label}</span>
+              <span className="text-[10px] font-medium">{t("editor", el.labelKey)}</span>
             </button>
           ))}
         </div>
@@ -170,7 +172,7 @@ export function ElementsPanel({ canvas, onAdd }: ElementsPanelProps) {
       {/* Background color */}
       <div className="shrink-0 border-t border-black/[0.06] p-3">
         <label className="mb-2 block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-          Fond du canvas
+          {t("editor", "canvas")}
         </label>
         <div className="flex items-center gap-2">
           <div className="relative">

@@ -15,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useTemplates, useDeleteTemplate, usePublishTemplate } from "@/hooks/use-templates";
+import { useI18n } from "@/lib/i18n/context";
 import { FORMAT_PRESETS } from "@/lib/fabric/format-presets";
 import type { TemplateFormat } from "@/types";
 
@@ -28,6 +29,7 @@ export default function TemplatesPage({
   const { data: templates, isLoading } = useTemplates(eventId);
   const deleteTemplate = useDeleteTemplate(eventId);
   const publishTemplate = usePublishTemplate(eventId);
+  const { t } = useI18n();
 
   return (
     <div className="space-y-6">
@@ -40,9 +42,9 @@ export default function TemplatesPage({
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Templates</h1>
+            <h1 className="text-2xl font-bold">{t("templatesPage", "title")}</h1>
             <p className="text-muted-foreground">
-              Créez des modèles de visuels pour vos participants
+              {t("templatesPage", "subtitle")}
             </p>
           </div>
         </div>
@@ -51,7 +53,7 @@ export default function TemplatesPage({
           className={buttonVariants()}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Nouveau template
+          {t("templatesPage", "newTemplate")}
         </Link>
       </div>
 
@@ -69,16 +71,16 @@ export default function TemplatesPage({
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Palette className="mb-4 h-12 w-12 text-muted-foreground" />
-            <h3 className="mb-2 text-lg font-medium">Aucun template</h3>
+            <h3 className="mb-2 text-lg font-medium">{t("templatesPage", "noTemplates")}</h3>
             <p className="mb-4 text-sm text-muted-foreground">
-              Créez votre premier template pour commencer
+              {t("templatesPage", "noTemplatesDesc")}
             </p>
             <Link
               href={`/events/${eventId}/templates/new/editor`}
               className={buttonVariants()}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Créer un template
+              {t("templatesPage", "createFirst")}
             </Link>
           </CardContent>
         </Card>
@@ -108,8 +110,8 @@ export default function TemplatesPage({
                       }
                     >
                       {template.status === "published"
-                        ? "Publié"
-                        : "Brouillon"}
+                        ? t("templatesPage", "published")
+                        : t("templatesPage", "draft")}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -128,7 +130,7 @@ export default function TemplatesPage({
                     )}
                     <label className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/40 text-white opacity-0 transition-opacity group-hover:opacity-100">
                       <span className="text-xs font-medium">
-                        {template.thumbnail_url ? "Changer la couverture" : "Ajouter une couverture"}
+                        {template.thumbnail_url ? t("templatesPage", "changeCover") : t("templatesPage", "addCover")}
                       </span>
                       <input
                         type="file"
@@ -161,7 +163,7 @@ export default function TemplatesPage({
                       })}
                     >
                       <Pencil className="mr-1 h-3 w-3" />
-                      Éditer
+                      {t("templatesPage", "edit")}
                     </Link>
                     <Button
                       variant="outline"
@@ -177,14 +179,14 @@ export default function TemplatesPage({
                       }
                     >
                       {template.status === "published"
-                        ? "Dépublier"
-                        : "Publier"}
+                        ? t("templatesPage", "unpublish")
+                        : t("templatesPage", "publish")}
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        if (confirm("Supprimer ce template ?")) {
+                        if (confirm(t("templatesPage", "deleteConfirm"))) {
                           deleteTemplate.mutate(template.id);
                         }
                       }}

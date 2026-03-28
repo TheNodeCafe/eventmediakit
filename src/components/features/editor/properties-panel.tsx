@@ -38,6 +38,7 @@ import {
   loadGoogleFont,
   type FontCategory,
 } from "@/lib/fonts/google-fonts";
+import { useI18n } from "@/lib/i18n/context";
 
 interface PropertiesPanelProps {
   canvas: Canvas | null;
@@ -90,6 +91,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
   const { selectedObjectId, canvasWidth, canvasHeight } = useEditorStore();
   const [props, setProps] = useState<ObjectProps | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useI18n();
 
   const syncProps = useCallback(() => {
     if (!canvas || !selectedObjectId) { setProps(null); return; }
@@ -370,10 +372,10 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
     return (
       <div className="flex-1 overflow-y-auto px-3 py-4">
         <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-          Properties
+          {t("editor", "properties")}
         </h3>
         <p className="py-12 text-center text-[12px] text-muted-foreground/40">
-          Selectionner un element
+          {t("editor", "selectElement")}
         </p>
       </div>
     );
@@ -382,7 +384,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
   return (
     <div className="flex-1 overflow-y-auto px-3 py-3">
       <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-        Properties
+        {t("editor", "properties")}
       </h3>
 
       <div className="space-y-3">
@@ -393,26 +395,26 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
           >
             <div className="mb-1.5 flex items-center gap-1.5">
               <Tag className="h-3 w-3 text-orange-400" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-500">Variable</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-500">{t("editor", "variable")}</span>
             </div>
             <Select value={props.variableField || "__none__"} onValueChange={handleVariableChange}>
               <SelectTrigger className="h-7 rounded-lg border-black/[0.08] text-[12px] shadow-none"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">Element fixe</SelectItem>
+                <SelectItem value="__none__">{t("editor", "fixedElement")}</SelectItem>
                 {variableFields.map((f) => (
                   <SelectItem key={f.id} value={f.name}>{f.label} — {f.field_type}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {props.variableField && (
-              <p className="mt-1.5 text-[10px] text-orange-400">Rempli par le visiteur</p>
+              <p className="mt-1.5 text-[10px] text-orange-400">{t("editor", "filledByVisitor")}</p>
             )}
           </Section>
         )}
 
         {/* === POSITION & SIZE === */}
         <div>
-          <SectionLabel>Position & Taille</SectionLabel>
+          <SectionLabel>{t("editor", "positionSize")}</SectionLabel>
           {/* Alignment buttons */}
           <div className="mb-2 flex items-center gap-0.5">
             <ToggleBtn active={false} onClick={() => alignObject("left")}>
@@ -451,7 +453,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
 
         {/* === ROTATION === */}
         <div>
-          <SectionLabel>Rotation</SectionLabel>
+          <SectionLabel>{t("editor", "rotation")}</SectionLabel>
           <div className="flex items-center gap-1.5">
             <RotateCw className="h-3 w-3 shrink-0 text-muted-foreground/50" />
             <Input
@@ -482,7 +484,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
         {/* === IMAGE CONTROLS === */}
         {isImage && (
           <div className="space-y-2">
-            <SectionLabel>Image</SectionLabel>
+            <SectionLabel>{t("editor", "imageFit")}</SectionLabel>
             {/* Fit mode segmented buttons */}
             <div className="flex items-center gap-0.5 rounded-lg bg-black/[0.04] p-0.5">
               {(["fill", "contain", "cover"] as const).map((mode) => (
@@ -495,7 +497,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {mode === "fill" ? "Remplir" : mode === "contain" ? "Contenir" : "Couvrir"}
+                  {mode === "fill" ? t("editor", "fill") : mode === "contain" ? t("editor", "contain") : t("editor", "cover")}
                 </button>
               ))}
             </div>
@@ -512,7 +514,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
                 className="ml-auto flex items-center gap-1 rounded-lg border border-black/[0.08] px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-black/[0.04] hover:text-foreground"
               >
                 <ImagePlus className="h-3 w-3" />
-                Remplacer
+                {t("editor", "replaceImage")}
               </button>
               <input
                 ref={imageInputRef}
@@ -528,7 +530,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
         {/* === TEXT CONTROLS === */}
         {isText && (
           <div className="space-y-2">
-            <SectionLabel>Texte</SectionLabel>
+            <SectionLabel>{t("editor", "textSection")}</SectionLabel>
             <div className="flex gap-1.5">
               <Select value={props.fontFamily ?? "Inter"} onValueChange={(v) => {
                 if (!v) return;
@@ -586,15 +588,15 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
             </div>
             {/* Line height & letter spacing */}
             <div className="grid grid-cols-2 gap-1.5">
-              <NumInput label="Interligne" value={Math.round((props.lineHeight ?? 1.2) * 100) / 100} onChange={(v) => update("lineHeight", v)} step={0.1} />
-              <NumInput label="Espacement" value={props.charSpacing ?? 0} onChange={(v) => update("charSpacing", v)} step={10} />
+              <NumInput label={t("editor", "lineHeight")} value={Math.round((props.lineHeight ?? 1.2) * 100) / 100} onChange={(v) => update("lineHeight", v)} step={0.1} />
+              <NumInput label={t("editor", "letterSpacing")} value={props.charSpacing ?? 0} onChange={(v) => update("charSpacing", v)} step={10} />
             </div>
           </div>
         )}
 
         {/* === FILL COLOR === */}
         <div>
-          <SectionLabel>Couleur</SectionLabel>
+          <SectionLabel>{t("editor", "color")}</SectionLabel>
           {props.fillType === "gradient" ? (
             <div className="flex items-center gap-2">
               <input type="color" value={props.gradientColor1} onChange={(e) => updateGradient(e.target.value, props.gradientColor2 ?? "#a855f7")} className="h-7 w-7 cursor-pointer appearance-none rounded-lg border border-black/[0.08] bg-transparent p-0.5" />
@@ -613,7 +615,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
         {/* === BORDER RADIUS (rect only) === */}
         {isRect && (
           <div>
-            <SectionLabel>Coins arrondis</SectionLabel>
+            <SectionLabel>{t("editor", "borderRadius")}</SectionLabel>
             <div className="flex items-center gap-2">
               <input
                 type="range"
@@ -634,7 +636,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
 
         {/* === STROKE === */}
         <div>
-          <SectionLabel>Bordure</SectionLabel>
+          <SectionLabel>{t("editor", "stroke")}</SectionLabel>
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -657,7 +659,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
         {/* === SHADOW === */}
         <div>
           <div className="flex items-center justify-between">
-            <SectionLabel>Ombre</SectionLabel>
+            <SectionLabel>{t("editor", "shadow")}</SectionLabel>
             <label className="flex cursor-pointer items-center gap-1.5">
               <input
                 type="checkbox"
@@ -686,7 +688,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
               <div className="grid grid-cols-3 gap-1.5">
                 <NumInput label="X" value={props.shadowOffsetX ?? 4} onChange={(v) => updateShadow("offsetX", v)} />
                 <NumInput label="Y" value={props.shadowOffsetY ?? 4} onChange={(v) => updateShadow("offsetY", v)} />
-                <NumInput label="Flou" value={props.shadowBlur ?? 8} onChange={(v) => updateShadow("blur", v)} />
+                <NumInput label={t("editor", "shadowBlur")} value={props.shadowBlur ?? 8} onChange={(v) => updateShadow("blur", v)} />
               </div>
             </div>
           )}
@@ -695,7 +697,7 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
         {/* === OPACITY === */}
         <div>
           <div className="flex items-center justify-between">
-            <SectionLabel>Opacite</SectionLabel>
+            <SectionLabel>{t("editor", "opacity")}</SectionLabel>
             <span className="text-[10px] tabular-nums text-muted-foreground/50">{Math.round(props.opacity * 100)}%</span>
           </div>
           <input

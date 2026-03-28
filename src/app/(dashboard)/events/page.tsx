@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEvents } from "@/hooks/use-events";
+import { useI18n } from "@/lib/i18n/context";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -13,12 +14,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, CalendarDays, ArrowRight } from "lucide-react";
 
-const statusLabels: Record<string, string> = {
-  draft: "Brouillon",
-  active: "Actif",
-  archived: "Archivé",
-};
-
 const statusVariants: Record<string, "default" | "secondary" | "outline"> = {
   draft: "secondary",
   active: "default",
@@ -27,14 +22,23 @@ const statusVariants: Record<string, "default" | "secondary" | "outline"> = {
 
 export default function EventsPage() {
   const { data: events, isLoading } = useEvents();
+  const { t, locale } = useI18n();
+
+  const statusLabels: Record<string, string> = {
+    draft: t("events", "draft"),
+    active: t("events", "active"),
+    archived: t("events", "archived"),
+  };
+
+  const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight text-foreground">Événements</h1>
+          <h1 className="text-[22px] font-bold tracking-tight text-foreground">{t("events", "title")}</h1>
           <p className="mt-1 text-[14px] text-muted-foreground">
-            Gérez vos événements et leurs kits média
+            {t("events", "subtitle")}
           </p>
         </div>
         <Link
@@ -44,7 +48,7 @@ export default function EventsPage() {
           })}
         >
           <Plus className="h-4 w-4" />
-          Nouvel événement
+          {t("events", "newEvent")}
         </Link>
       </div>
 
@@ -68,9 +72,9 @@ export default function EventsPage() {
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/8">
               <CalendarDays className="h-7 w-7 text-primary/70" />
             </div>
-            <h3 className="mb-1.5 text-lg font-semibold text-foreground">Aucun événement</h3>
+            <h3 className="mb-1.5 text-lg font-semibold text-foreground">{t("events", "noEvents")}</h3>
             <p className="mb-6 max-w-[280px] text-center text-sm text-muted-foreground">
-              Créez votre premier événement pour commencer à générer des kits média
+              {t("events", "noEventsDesc")}
             </p>
             <Link
               href="/events/new"
@@ -79,7 +83,7 @@ export default function EventsPage() {
               })}
             >
               <Plus className="h-4 w-4" />
-              Créer un événement
+              {t("events", "createFirst")}
             </Link>
           </CardContent>
         </Card>
@@ -101,13 +105,13 @@ export default function EventsPage() {
                   <CardDescription className="text-[13px]">
                     {event.start_date && (
                       <span>
-                        {new Date(event.start_date).toLocaleDateString("fr-FR", {
+                        {new Date(event.start_date).toLocaleDateString(dateLocale, {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
                         })}
                         {event.end_date &&
-                          ` — ${new Date(event.end_date).toLocaleDateString("fr-FR", {
+                          ` — ${new Date(event.end_date).toLocaleDateString(dateLocale, {
                             day: "numeric",
                             month: "short",
                             year: "numeric",
@@ -118,7 +122,7 @@ export default function EventsPage() {
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="flex items-center text-[12px] font-medium text-primary/70 opacity-0 transition-opacity group-hover:opacity-100">
-                    Gérer
+                    {t("events", "manage")}
                     <ArrowRight className="ml-1 h-3 w-3" />
                   </div>
                 </CardContent>
