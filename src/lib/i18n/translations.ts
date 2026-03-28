@@ -14,7 +14,7 @@ export const translations = {
   // ===== HERO =====
   hero: {
     badge: { en: "New: Multi-format export and white label", fr: "Nouveau : Export multi-formats et white label" },
-    title1: { en: "Customizable media kits", fr: "Des kits média" },
+    title1: { en: "Customizable ", fr: "Des kits média " },
     titleHighlight: { en: "media kits", fr: "personnalisables" },
     title2: { en: " for your events", fr: " pour vos événements" },
     subtitle: {
