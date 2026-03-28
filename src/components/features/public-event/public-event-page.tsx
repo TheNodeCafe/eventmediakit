@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Download, Loader2, Lock, ImageIcon, Sparkles } from "lucide-react";
 import { TemplatePreview } from "../participant-portal/template-preview";
 import { ImageCropEditor } from "./image-crop-editor";
+import { LanguageToggle } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import { FORMAT_PRESETS } from "@/lib/fabric/format-presets";
 import type { TemplateFormat } from "@/types";
@@ -274,9 +275,12 @@ export function PublicEventPage({
                 )}
               </div>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-white/90 backdrop-blur-sm">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-sm font-semibold tracking-wide">MEDIAKIT</span>
+            <div className="flex items-center gap-2">
+              <LanguageToggle className="text-white/70 hover:bg-white/10 hover:text-white" />
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-white/90 backdrop-blur-sm">
+                <Sparkles className="h-4 w-4" />
+                <span className="text-sm font-semibold tracking-wide">MEDIAKIT</span>
+              </div>
             </div>
           </div>
         </div>

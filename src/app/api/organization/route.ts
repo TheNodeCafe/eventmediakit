@@ -51,6 +51,7 @@ export async function PATCH(request: Request) {
     if (body.name !== undefined) updateData.name = body.name;
     if (body.logo_url !== undefined) updateData.logo_url = body.logo_url;
     if (body.primary_color !== undefined) updateData.primary_color = body.primary_color;
+    if (body.locale !== undefined) updateData.locale = body.locale;
 
     const { error } = await admin
       .from("organizations")
