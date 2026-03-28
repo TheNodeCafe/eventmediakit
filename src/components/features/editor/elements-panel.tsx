@@ -7,6 +7,7 @@ import {
   createRect,
   createTextbox,
 } from "./canvas-wrapper";
+import { useEditorStore } from "@/store/editor-store";
 import {
   Type,
   Heading,
@@ -32,6 +33,11 @@ const elements = [
   { id: "gradient", label: "Dégradé", icon: Palette, action: "gradient" },
 ];
 
+function getCanvasCenter(): { cx: number; cy: number } {
+  const { canvasWidth, canvasHeight } = useEditorStore.getState();
+  return { cx: canvasWidth / 2, cy: canvasHeight / 2 };
+}
+
 export function ElementsPanel({ canvas, onAdd }: ElementsPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -42,11 +48,12 @@ export function ElementsPanel({ canvas, onAdd }: ElementsPanelProps) {
       await import("fabric");
 
     const id = generateObjectId();
+    const { cx, cy } = getCanvasCenter();
 
     switch (action) {
       case "heading": {
         const text = new Textbox("Titre", {
-          left: 100, top: 100, width: 400,
+          left: cx - 200, top: cy - 24, width: 400,
           fontSize: 48, fontFamily: "Arial", fontWeight: "bold", fill: "#1a1a1a", id,
         } as never);
         canvas.add(text);
@@ -55,26 +62,28 @@ export function ElementsPanel({ canvas, onAdd }: ElementsPanelProps) {
       }
       case "text": {
         const text = createTextbox(id);
+        text.set({ left: cx - 150, top: cy - 16 } as never);
         canvas.add(text);
         canvas.setActiveObject(text);
         break;
       }
       case "rect": {
         const rect = createRect(id);
+        rect.set({ left: cx - 100, top: cy - 75 } as never);
         canvas.add(rect);
         canvas.setActiveObject(rect);
         break;
       }
       case "circle": {
         const circle = new Circle({
-          left: 100, top: 100, radius: 75, fill: "#8b5cf6", id,
+          left: cx - 75, top: cy - 75, radius: 75, fill: "#8b5cf6", id,
         } as never);
         canvas.add(circle);
         canvas.setActiveObject(circle);
         break;
       }
       case "line": {
-        const line = new Line([50, 200, 450, 200], {
+        const line = new Line([cx - 200, cy, cx + 200, cy], {
           stroke: "#e5e5e5", strokeWidth: 2, id,
         } as never);
         canvas.add(line);
@@ -116,7 +125,10 @@ export function ElementsPanel({ canvas, onAdd }: ElementsPanelProps) {
       const { FabricImage } = await import("fabric");
       const img = await FabricImage.fromURL(reader.result as string);
       const scale = Math.min(400 / (img.width ?? 1), 400 / (img.height ?? 1));
-      img.set({ left: 100, top: 100, scaleX: scale, scaleY: scale, id: generateObjectId() } as never);
+      const { cx, cy } = getCanvasCenter();
+      const imgW = (img.width ?? 0) * scale;
+      const imgH = (img.height ?? 0) * scale;
+      img.set({ left: cx - imgW / 2, top: cy - imgH / 2, scaleX: scale, scaleY: scale, id: generateObjectId() } as never);
       canvas.add(img);
       canvas.setActiveObject(img);
       canvas.renderAll();

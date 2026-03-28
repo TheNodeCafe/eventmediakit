@@ -8,6 +8,7 @@ import { CUSTOM_PROPERTIES } from "@/lib/fabric/variable-fields";
 FabricObject.customProperties = [...CUSTOM_PROPERTIES];
 
 const SNAP_THRESHOLD = 10;
+const MAX_UNDO = 20;
 
 interface CanvasWrapperProps {
   onCanvasReady: (canvas: Canvas) => void;
@@ -21,6 +22,10 @@ export function CanvasWrapper({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<Canvas | null>(null);
   const guideLinesRef = useRef<FabricObject[]>([]);
+  const clipboardRef = useRef<FabricObject | null>(null);
+  const undoStackRef = useRef<string[]>([]);
+  const redoStackRef = useRef<string[]>([]);
+  const isUndoRedoRef = useRef(false);
   const { canvasWidth, canvasHeight, zoom, setSelectedObjectId, setIsDirty } =
     useEditorStore();
 
@@ -47,6 +52,26 @@ export function CanvasWrapper({
     canvas.add(line);
     canvas.bringObjectToFront(line);
     guideLinesRef.current.push(line);
+  }
+
+  function saveSnapshot(canvas: Canvas) {
+    if (isUndoRedoRef.current) return;
+    const json = JSON.stringify(
+      (canvas as unknown as { toJSON: (props: string[]) => Record<string, unknown> }).toJSON(CUSTOM_PROPERTIES)
+    );
+    undoStackRef.current.push(json);
+    if (undoStackRef.current.length > MAX_UNDO) {
+      undoStackRef.current.shift();
+    }
+    redoStackRef.current = [];
+  }
+
+  function restoreSnapshot(canvas: Canvas, json: string) {
+    isUndoRedoRef.current = true;
+    canvas.loadFromJSON(JSON.parse(json)).then(() => {
+      canvas.renderAll();
+      isUndoRedoRef.current = false;
+    });
   }
 
   const initCanvas = useCallback(() => {
@@ -79,9 +104,16 @@ export function CanvasWrapper({
     canvas.on("object:modified", () => {
       setIsDirty(true);
       clearGuides(canvas);
+      saveSnapshot(canvas);
     });
-    canvas.on("object:added", () => setIsDirty(true));
-    canvas.on("object:removed", () => setIsDirty(true));
+    canvas.on("object:added", () => {
+      setIsDirty(true);
+      saveSnapshot(canvas);
+    });
+    canvas.on("object:removed", () => {
+      setIsDirty(true);
+      saveSnapshot(canvas);
+    });
 
     // Snapping guides — uses dimsRef for always-current values
     canvas.on("object:moving", (e) => {
@@ -140,11 +172,19 @@ export function CanvasWrapper({
       canvas.renderAll();
     });
 
-    // Load initial JSON
+    // Load initial JSON then auto-fit zoom
     if (initialJson && Object.keys(initialJson).length > 0) {
       canvas.loadFromJSON(initialJson).then(() => {
         canvas.renderAll();
+        // Auto-fit zoom on initial load
+        autoFitZoom(canvas);
+        // Save initial snapshot for undo
+        saveSnapshot(canvas);
       });
+    } else {
+      // Auto-fit even for empty canvas
+      autoFitZoom(canvas);
+      saveSnapshot(canvas);
     }
 
     fabricRef.current = canvas;
@@ -153,6 +193,20 @@ export function CanvasWrapper({
     return canvas;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function autoFitZoom(canvas: Canvas) {
+    const container = canvasRef.current?.parentElement?.parentElement;
+    if (!container) return;
+    const padding = 80;
+    const { w, h } = dimsRef.current;
+    const scaleX = (container.clientWidth - padding) / w;
+    const scaleY = (container.clientHeight - padding) / h;
+    const fitZoom = Math.min(scaleX, scaleY, 1);
+    useEditorStore.getState().setZoom(fitZoom);
+    canvas.setZoom(fitZoom);
+    canvas.setDimensions({ width: w * fitZoom, height: h * fitZoom });
+    canvas.renderAll();
+  }
 
   useEffect(() => {
     const canvas = initCanvas();
@@ -175,6 +229,106 @@ export function CanvasWrapper({
     canvas.renderAll();
   }, [zoom, canvasWidth, canvasHeight]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const canvas = fabricRef.current;
+      if (!canvas) return;
+      const isMeta = e.metaKey || e.ctrlKey;
+
+      // Delete/Backspace - remove active object (skip if textbox is editing)
+      if (e.key === "Delete" || e.key === "Backspace") {
+        const active = canvas.getActiveObject();
+        if (!active) return;
+        // Skip if a textbox is in editing mode
+        if ((active as unknown as { isEditing?: boolean }).isEditing) return;
+        e.preventDefault();
+        canvas.remove(active);
+        canvas.discardActiveObject();
+        canvas.renderAll();
+        return;
+      }
+
+      // Ctrl+Z / Cmd+Z - undo
+      if (isMeta && !e.shiftKey && e.key === "z") {
+        e.preventDefault();
+        if (undoStackRef.current.length > 1) {
+          const current = undoStackRef.current.pop()!;
+          redoStackRef.current.push(current);
+          const prev = undoStackRef.current[undoStackRef.current.length - 1];
+          restoreSnapshot(canvas, prev);
+        }
+        return;
+      }
+
+      // Ctrl+Shift+Z / Cmd+Shift+Z - redo
+      if (isMeta && e.shiftKey && e.key === "z") {
+        e.preventDefault();
+        if (redoStackRef.current.length > 0) {
+          const next = redoStackRef.current.pop()!;
+          undoStackRef.current.push(next);
+          restoreSnapshot(canvas, next);
+        }
+        return;
+      }
+
+      // Ctrl+C / Cmd+C - copy
+      if (isMeta && e.key === "c") {
+        const active = canvas.getActiveObject();
+        if (!active) return;
+        if ((active as unknown as { isEditing?: boolean }).isEditing) return;
+        e.preventDefault();
+        active.clone().then((cloned: FabricObject) => {
+          clipboardRef.current = cloned;
+        });
+        return;
+      }
+
+      // Ctrl+V / Cmd+V - paste
+      if (isMeta && e.key === "v") {
+        if (!clipboardRef.current) return;
+        // Don't intercept if a textbox is editing
+        const active = canvas.getActiveObject();
+        if (active && (active as unknown as { isEditing?: boolean }).isEditing) return;
+        e.preventDefault();
+        clipboardRef.current.clone().then((cloned: FabricObject) => {
+          cloned.set({
+            left: (cloned.left ?? 0) + 20,
+            top: (cloned.top ?? 0) + 20,
+          } as never);
+          (cloned as FabricObject & { id: string }).id = `obj_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+          canvas.add(cloned);
+          canvas.setActiveObject(cloned);
+          canvas.renderAll();
+          // Update clipboard position for next paste
+          clipboardRef.current = cloned;
+        });
+        return;
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Ctrl+scroll wheel to zoom
+  useEffect(() => {
+    const container = canvasRef.current?.parentElement?.parentElement;
+    if (!container) return;
+
+    function handleWheel(e: WheelEvent) {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const delta = -e.deltaY / 500;
+      const store = useEditorStore.getState();
+      const newZoom = Math.max(0.1, Math.min(2, store.zoom + delta));
+      store.setZoom(newZoom);
+    }
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, []);
+
   return (
     <div className="relative flex h-full items-center justify-center overflow-auto p-8">
       {/* Zoom controls */}
@@ -187,12 +341,8 @@ export function CanvasWrapper({
         </button>
         <button
           onClick={() => {
-            const container = canvasRef.current?.parentElement?.parentElement;
-            if (!container) return;
-            const padding = 80;
-            const scaleX = (container.clientWidth - padding) / canvasWidth;
-            const scaleY = (container.clientHeight - padding) / canvasHeight;
-            useEditorStore.getState().setZoom(Math.min(scaleX, scaleY, 1));
+            const canvas = fabricRef.current;
+            if (canvas) autoFitZoom(canvas);
           }}
           className="rounded-full px-2.5 py-1 text-[11px] font-medium tabular-nums text-foreground transition-colors hover:bg-black/[0.04]"
         >
@@ -204,6 +354,10 @@ export function CanvasWrapper({
         >
           +
         </button>
+        <div className="mx-1 h-4 w-px bg-black/[0.06]" />
+        <span className="px-1.5 text-[10px] tabular-nums text-muted-foreground/60">
+          {canvasWidth} x {canvasHeight}
+        </span>
       </div>
 
       <div className="rounded-sm shadow-[0_2px_20px_rgba(0,0,0,0.08)]">

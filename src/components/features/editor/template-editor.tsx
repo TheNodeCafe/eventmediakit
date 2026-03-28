@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Canvas } from "fabric";
 import { CanvasWrapper } from "./canvas-wrapper";
 import { ElementsPanel } from "./elements-panel";
@@ -61,6 +61,17 @@ export function TemplateEditor({
   const [layersKey, setLayersKey] = useState(0);
   const { isDirty, setIsDirty, format, canvasWidth, canvasHeight, setFormat } =
     useEditorStore();
+
+  // Unsaved changes warning
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (isDirty) {
+        e.preventDefault();
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   const handleCanvasReady = useCallback((canvas: Canvas) => {
     canvasRef.current = canvas;

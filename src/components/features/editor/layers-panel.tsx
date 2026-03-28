@@ -15,6 +15,8 @@ import {
   Circle,
   Image,
   Minus,
+  Lock,
+  Unlock,
 } from "lucide-react";
 
 interface LayerItem {
@@ -22,6 +24,7 @@ interface LayerItem {
   name: string;
   type: string;
   visible: boolean;
+  locked: boolean;
 }
 
 function getLayerIcon(type: string) {
@@ -78,12 +81,13 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
     const objects = canvas.getObjects();
     const items = objects
       .map((obj) => {
-        const typed = obj as FabricObject & { id?: string };
+        const typed = obj as FabricObject & { id?: string; locked?: boolean };
         return {
           id: typed.id ?? "",
           name: getLayerName(obj),
           type: (obj.type ?? "object") as string,
           visible: obj.visible !== false,
+          locked: !!typed.locked,
         };
       })
       .reverse(); // Top layer first
@@ -135,6 +139,26 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
     obj.visible = !obj.visible;
     canvas?.renderAll();
     syncLayers();
+  }
+
+  function handleToggleLock(id: string) {
+    const obj = findObject(id);
+    if (!obj || !canvas) return;
+    const typed = obj as FabricObject & { locked?: boolean };
+    const newLocked = !typed.locked;
+    typed.locked = newLocked;
+    obj.set({
+      selectable: !newLocked,
+      evented: !newLocked,
+      lockMovementX: newLocked,
+      lockMovementY: newLocked,
+    } as never);
+    if (newLocked) {
+      canvas.discardActiveObject();
+    }
+    canvas.renderAll();
+    syncLayers();
+    useEditorStore.getState().setIsDirty(true);
   }
 
   function handleDelete(id: string) {
@@ -205,13 +229,27 @@ export function LayersPanel({ canvas }: LayersPanelProps) {
                     isSelected
                       ? "bg-primary/[0.07] text-foreground"
                       : "text-muted-foreground hover:bg-black/[0.03] hover:text-foreground"
-                  }`}
+                  } ${layer.locked ? "opacity-60" : ""}`}
                 >
                   <Icon className={`h-3 w-3 shrink-0 ${isSelected ? "text-primary" : ""}`} />
                   <span className="flex-1 truncate font-medium">{layer.name}</span>
 
                   {/* Action buttons - visible on hover */}
                   <div className="flex shrink-0 items-center gap-0 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleLock(layer.id);
+                      }}
+                      className="rounded-md p-1 text-muted-foreground/50 transition-colors hover:bg-black/[0.06] hover:text-foreground"
+                      title={layer.locked ? "Déverrouiller" : "Verrouiller"}
+                    >
+                      {layer.locked ? (
+                        <Lock className="h-3 w-3 text-amber-500" />
+                      ) : (
+                        <Unlock className="h-3 w-3" />
+                      )}
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import type { Canvas, FabricObject, Textbox, Gradient } from "fabric";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,6 +22,15 @@ import {
   AlignRight,
   Tag,
   RotateCw,
+  AlignHorizontalJustifyStart,
+  AlignHorizontalJustifyCenter,
+  AlignHorizontalJustifyEnd,
+  AlignVerticalJustifyStart,
+  AlignVerticalJustifyCenter,
+  AlignVerticalJustifyEnd,
+  FlipHorizontal,
+  FlipVertical,
+  ImagePlus,
 } from "lucide-react";
 
 interface PropertiesPanelProps {
@@ -56,6 +65,16 @@ interface ObjectProps {
   lineHeight?: number;
   charSpacing?: number;
   variableField: string;
+  // Image fit mode
+  imageFitMode?: "fill" | "contain" | "cover";
+  flipX?: boolean;
+  flipY?: boolean;
+  // Shadow
+  shadowEnabled?: boolean;
+  shadowColor?: string;
+  shadowOffsetX?: number;
+  shadowOffsetY?: number;
+  shadowBlur?: number;
 }
 
 const FONTS = [
@@ -65,8 +84,9 @@ const FONTS = [
 ];
 
 export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps) {
-  const { selectedObjectId } = useEditorStore();
+  const { selectedObjectId, canvasWidth, canvasHeight } = useEditorStore();
   const [props, setProps] = useState<ObjectProps | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const syncProps = useCallback(() => {
     if (!canvas || !selectedObjectId) { setProps(null); return; }
@@ -90,6 +110,8 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
     } else {
       solidFill = (fill as string) ?? "#000000";
     }
+
+    const shadow = obj.shadow as { color?: string; offsetX?: number; offsetY?: number; blur?: number } | null;
 
     setProps({
       type: (obj.type ?? "object") as string,
@@ -118,6 +140,14 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
       lineHeight: t.lineHeight as number | undefined,
       charSpacing: t.charSpacing as number | undefined,
       variableField: (t[VARIABLE_FIELD_PROPERTY] as string) ?? "",
+      imageFitMode: (t.imageFitMode as "fill" | "contain" | "cover") ?? "fill",
+      flipX: !!obj.flipX,
+      flipY: !!obj.flipY,
+      shadowEnabled: !!shadow,
+      shadowColor: shadow?.color ?? "#000000",
+      shadowOffsetX: shadow?.offsetX ?? 4,
+      shadowOffsetY: shadow?.offsetY ?? 4,
+      shadowBlur: shadow?.blur ?? 8,
     });
   }, [canvas, selectedObjectId]);
 
@@ -191,8 +221,147 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
     useEditorStore.getState().setIsDirty(true);
   }
 
+  // Alignment helpers
+  function alignObject(alignment: "left" | "centerH" | "right" | "top" | "centerV" | "bottom") {
+    const obj = getObj();
+    if (!obj || !canvas) return;
+    const objW = (obj.width ?? 0) * (obj.scaleX ?? 1);
+    const objH = (obj.height ?? 0) * (obj.scaleY ?? 1);
+    switch (alignment) {
+      case "left": obj.set("left", 0); break;
+      case "centerH": obj.set("left", canvasWidth / 2 - objW / 2); break;
+      case "right": obj.set("left", canvasWidth - objW); break;
+      case "top": obj.set("top", 0); break;
+      case "centerV": obj.set("top", canvasHeight / 2 - objH / 2); break;
+      case "bottom": obj.set("top", canvasHeight - objH); break;
+    }
+    obj.setCoords();
+    canvas.renderAll();
+    syncProps();
+    useEditorStore.getState().setIsDirty(true);
+  }
+
+  // Image fit mode
+  function applyImageFitMode(mode: "fill" | "contain" | "cover") {
+    const obj = getObj();
+    if (!obj || !canvas) return;
+    // Store the mode as custom property
+    (obj as unknown as Record<string, unknown>).imageFitMode = mode;
+
+    // Get the current bounding box dimensions
+    const boxW = (obj.width ?? 0) * (obj.scaleX ?? 1);
+    const boxH = (obj.height ?? 0) * (obj.scaleY ?? 1);
+    const origW = obj.width ?? 1;
+    const origH = obj.height ?? 1;
+
+    switch (mode) {
+      case "fill": {
+        // Stretch to fill bounding box, clear clipPath
+        obj.set("scaleX" as never, (boxW / origW) as never);
+        obj.set("scaleY" as never, (boxH / origH) as never);
+        obj.set("clipPath" as never, undefined as never);
+        break;
+      }
+      case "contain": {
+        const scale = Math.min(boxW / origW, boxH / origH);
+        obj.set("scaleX" as never, scale as never);
+        obj.set("scaleY" as never, scale as never);
+        obj.set("clipPath" as never, undefined as never);
+        break;
+      }
+      case "cover": {
+        const scale = Math.max(boxW / origW, boxH / origH);
+        obj.set("scaleX" as never, scale as never);
+        obj.set("scaleY" as never, scale as never);
+        // Set clipPath rect to original bounding box size
+        import("fabric").then(({ Rect }) => {
+          const clipRect = new Rect({
+            width: boxW / scale,
+            height: boxH / scale,
+            originX: "center",
+            originY: "center",
+          });
+          obj.set("clipPath" as never, clipRect as never);
+          canvas.renderAll();
+        });
+        break;
+      }
+    }
+    canvas.renderAll();
+    syncProps();
+    useEditorStore.getState().setIsDirty(true);
+  }
+
+  function handleReplaceImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const obj = getObj();
+    if (!obj || !canvas || !e.target.files?.[0]) return;
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const { FabricImage } = await import("fabric");
+      const newImg = await FabricImage.fromURL(reader.result as string);
+      // Keep position and scale
+      newImg.set({
+        left: obj.left,
+        top: obj.top,
+        scaleX: obj.scaleX,
+        scaleY: obj.scaleY,
+        angle: obj.angle,
+      } as never);
+      const typed = obj as FabricObject & { id?: string };
+      (newImg as FabricObject & { id?: string }).id = typed.id;
+      canvas.remove(obj);
+      canvas.add(newImg);
+      canvas.setActiveObject(newImg);
+      canvas.renderAll();
+      syncProps();
+      useEditorStore.getState().setIsDirty(true);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  }
+
+  // Shadow
+  function toggleShadow(enabled: boolean) {
+    const obj = getObj();
+    if (!obj || !canvas) return;
+    if (enabled) {
+      import("fabric").then(({ Shadow }) => {
+        obj.set("shadow" as never, new Shadow({
+          color: props?.shadowColor ?? "#000000",
+          offsetX: props?.shadowOffsetX ?? 4,
+          offsetY: props?.shadowOffsetY ?? 4,
+          blur: props?.shadowBlur ?? 8,
+        }) as never);
+        canvas.renderAll();
+        syncProps();
+        useEditorStore.getState().setIsDirty(true);
+      });
+    } else {
+      obj.set("shadow" as never, null as never);
+      canvas.renderAll();
+      syncProps();
+      useEditorStore.getState().setIsDirty(true);
+    }
+  }
+
+  function updateShadow(key: string, value: unknown) {
+    const obj = getObj();
+    if (!obj || !canvas) return;
+    const shadow = obj.shadow as Record<string, unknown> | null;
+    if (!shadow) return;
+    (shadow as Record<string, unknown>)[key] = value;
+    // Force re-render by reassigning
+    obj.set("shadow" as never, shadow as never);
+    obj.dirty = true;
+    canvas.renderAll();
+    syncProps();
+    useEditorStore.getState().setIsDirty(true);
+  }
+
   const isText = props?.type === "textbox" || props?.type === "i-text";
   const isRect = props?.type === "rect";
+  const isImage = props?.type === "image";
 
   if (!props) {
     return (
@@ -241,6 +410,28 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
         {/* === POSITION & SIZE === */}
         <div>
           <SectionLabel>Position & Taille</SectionLabel>
+          {/* Alignment buttons */}
+          <div className="mb-2 flex items-center gap-0.5">
+            <ToggleBtn active={false} onClick={() => alignObject("left")}>
+              <AlignHorizontalJustifyStart className="h-3.5 w-3.5" />
+            </ToggleBtn>
+            <ToggleBtn active={false} onClick={() => alignObject("centerH")}>
+              <AlignHorizontalJustifyCenter className="h-3.5 w-3.5" />
+            </ToggleBtn>
+            <ToggleBtn active={false} onClick={() => alignObject("right")}>
+              <AlignHorizontalJustifyEnd className="h-3.5 w-3.5" />
+            </ToggleBtn>
+            <div className="mx-0.5 h-4 w-px bg-black/[0.06]" />
+            <ToggleBtn active={false} onClick={() => alignObject("top")}>
+              <AlignVerticalJustifyStart className="h-3.5 w-3.5" />
+            </ToggleBtn>
+            <ToggleBtn active={false} onClick={() => alignObject("centerV")}>
+              <AlignVerticalJustifyCenter className="h-3.5 w-3.5" />
+            </ToggleBtn>
+            <ToggleBtn active={false} onClick={() => alignObject("bottom")}>
+              <AlignVerticalJustifyEnd className="h-3.5 w-3.5" />
+            </ToggleBtn>
+          </div>
           <div className="grid grid-cols-2 gap-1.5">
             <NumInput label="X" value={props.left} onChange={(v) => update("left", v)} />
             <NumInput label="Y" value={props.top} onChange={(v) => update("top", v)} />
@@ -284,6 +475,52 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
             </div>
           </div>
         </div>
+
+        {/* === IMAGE CONTROLS === */}
+        {isImage && (
+          <div className="space-y-2">
+            <SectionLabel>Image</SectionLabel>
+            {/* Fit mode segmented buttons */}
+            <div className="flex items-center gap-0.5 rounded-lg bg-black/[0.04] p-0.5">
+              {(["fill", "contain", "cover"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => applyImageFitMode(mode)}
+                  className={`flex-1 rounded-md px-2 py-1 text-[10px] font-medium transition-all ${
+                    props.imageFitMode === mode
+                      ? "bg-white text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {mode === "fill" ? "Remplir" : mode === "contain" ? "Contenir" : "Couvrir"}
+                </button>
+              ))}
+            </div>
+            {/* Flip & Replace */}
+            <div className="flex items-center gap-1">
+              <ToggleBtn active={!!props.flipX} onClick={() => update("flipX", !props.flipX)}>
+                <FlipHorizontal className="h-3.5 w-3.5" />
+              </ToggleBtn>
+              <ToggleBtn active={!!props.flipY} onClick={() => update("flipY", !props.flipY)}>
+                <FlipVertical className="h-3.5 w-3.5" />
+              </ToggleBtn>
+              <button
+                onClick={() => imageInputRef.current?.click()}
+                className="ml-auto flex items-center gap-1 rounded-lg border border-black/[0.08] px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-black/[0.04] hover:text-foreground"
+              >
+                <ImagePlus className="h-3 w-3" />
+                Remplacer
+              </button>
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleReplaceImage}
+              />
+            </div>
+          </div>
+        )}
 
         {/* === TEXT CONTROLS === */}
         {isText && (
@@ -395,6 +632,44 @@ export function PropertiesPanel({ canvas, variableFields }: PropertiesPanelProps
             />
             <span className="text-[10px] text-muted-foreground/40">px</span>
           </div>
+        </div>
+
+        {/* === SHADOW === */}
+        <div>
+          <div className="flex items-center justify-between">
+            <SectionLabel>Ombre</SectionLabel>
+            <label className="flex cursor-pointer items-center gap-1.5">
+              <input
+                type="checkbox"
+                checked={!!props.shadowEnabled}
+                onChange={(e) => toggleShadow(e.target.checked)}
+                className="h-3 w-3 rounded accent-primary"
+              />
+              <span className="text-[10px] text-muted-foreground/50">{props.shadowEnabled ? "On" : "Off"}</span>
+            </label>
+          </div>
+          {props.shadowEnabled && (
+            <div className="mt-1.5 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={props.shadowColor ?? "#000000"}
+                  onChange={(e) => updateShadow("color", e.target.value)}
+                  className="h-7 w-7 cursor-pointer appearance-none rounded-lg border border-black/[0.08] bg-transparent p-0.5"
+                />
+                <Input
+                  value={props.shadowColor ?? "#000000"}
+                  onChange={(e) => updateShadow("color", e.target.value)}
+                  className="h-7 rounded-lg border-black/[0.08] font-mono text-[11px] shadow-none"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                <NumInput label="X" value={props.shadowOffsetX ?? 4} onChange={(v) => updateShadow("offsetX", v)} />
+                <NumInput label="Y" value={props.shadowOffsetY ?? 4} onChange={(v) => updateShadow("offsetY", v)} />
+                <NumInput label="Flou" value={props.shadowBlur ?? 8} onChange={(v) => updateShadow("blur", v)} />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* === OPACITY === */}

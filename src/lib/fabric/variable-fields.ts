@@ -6,7 +6,7 @@
 
 export const VARIABLE_FIELD_PROPERTY = "variableField";
 
-export const CUSTOM_PROPERTIES = [VARIABLE_FIELD_PROPERTY, "id"];
+export const CUSTOM_PROPERTIES = [VARIABLE_FIELD_PROPERTY, "id", "imageFitMode", "locked"];
 
 /**
  * Placeholder text shown in the editor for variable zones.
