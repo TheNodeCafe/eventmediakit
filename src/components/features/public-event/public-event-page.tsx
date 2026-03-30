@@ -463,7 +463,7 @@ export function PublicEventPage({
                       {FORMAT_PRESETS[selectedTemplate.format as TemplateFormat]?.label ?? selectedTemplate.format}
                     </span>
                   </div>
-                  <div className="overflow-hidden rounded-xl border shadow-sm">
+                  <div className="overflow-hidden rounded-xl">
                     <TemplatePreview
                       key={selectedTemplate.id}
                       canvasJson={selectedTemplate.canvas_json}
