@@ -267,7 +267,7 @@ export function PublicEventPage({
         <div className="absolute inset-0 opacity-10">
           <div className="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white/20 blur-3xl" />
         </div>
-        <div className="relative mx-auto max-w-6xl px-6 py-10 lg:py-14">
+        <div className="relative mx-auto max-w-6xl px-6 py-[30px] lg:py-[38px]">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-5">
               {logoUrl && <img src={logoUrl} alt={org.name} className="h-16 rounded-xl object-contain shadow-lg" />}
