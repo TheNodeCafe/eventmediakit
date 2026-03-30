@@ -100,6 +100,23 @@ export function CanvasWrapper({
       setSelectedObjectId(null);
     });
 
+    // Prevent text deformation on resize — convert scale to width change
+    canvas.on("object:scaling", (e) => {
+      const obj = e.target;
+      if (!obj) return;
+      const type = (obj.type ?? "") as string;
+      if (type === "textbox" || type === "i-text") {
+        const newWidth = Math.round((obj.width ?? 100) * (obj.scaleX ?? 1));
+        const newFontSize = Math.round(((obj as unknown as Record<string, number>).fontSize ?? 32) * (obj.scaleY ?? 1));
+        obj.set({
+          width: newWidth,
+          fontSize: newFontSize,
+          scaleX: 1,
+          scaleY: 1,
+        } as never);
+      }
+    });
+
     // Track changes
     canvas.on("object:modified", () => {
       setIsDirty(true);
