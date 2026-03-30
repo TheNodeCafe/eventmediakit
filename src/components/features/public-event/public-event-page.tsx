@@ -328,54 +328,41 @@ export function PublicEventPage({
       <div className="mx-auto max-w-6xl px-6 py-8">
         {visibleTemplates.length > 0 ? (
           <>
-            {/* Format selector — top */}
-            <div className="mb-8">
-              <h2 className="mb-1 text-lg font-bold tracking-tight">{t("publicPage", "chooseFormat")}</h2>
-              <p className="mb-4 text-[13px] text-muted-foreground">{t("publicPage", "chooseFormatDesc")}</p>
-
-              <div className="flex flex-wrap gap-3">
-                {visibleTemplates.map((template) => {
-                  const preset = FORMAT_PRESETS[template.format as TemplateFormat];
-                  const isActive = selectedTemplateId === template.id;
-                  return (
-                    <button
-                      key={template.id}
-                      onClick={() => setSelectedTemplateId(template.id)}
-                      className={cn(
-                        "flex flex-col items-center rounded-xl border-2 p-3 transition-all",
-                        isActive
-                          ? "border-primary bg-primary/5 shadow-sm"
-                          : "border-border/40 bg-white hover:border-border"
-                      )}
-                    >
-                      {template.thumbnail_url ? (
-                        <img
-                          src={template.thumbnail_url}
-                          alt=""
-                          className="mb-2 h-16 w-auto rounded object-contain"
-                        />
-                      ) : (
-                        <div
-                          className="mb-2 rounded bg-muted/50"
-                          style={{
-                            width: 56,
-                            height: Math.min(56 * (template.height / template.width), 72),
-                          }}
-                        />
-                      )}
-                      <span className="text-[12px] font-semibold">{preset?.label.split(" (")[0] ?? template.name}</span>
-                      <span className="text-[10px] text-muted-foreground">{template.width}x{template.height}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Split layout: form left + preview right */}
             {selectedTemplate && (
               <div className="flex flex-col gap-8 md:flex-row">
-                {/* Left: variable fields */}
-                <div className="flex-1 space-y-5 md:max-w-md">
+                {/* Left: format selector + fields */}
+                <div className="order-2 flex-1 space-y-5 md:order-1 md:max-w-md">
+                  {/* Format selector */}
+                  <div>
+                    <h2 className="mb-1 text-lg font-bold tracking-tight">{t("publicPage", "chooseFormat")}</h2>
+                    <p className="mb-3 text-[13px] text-muted-foreground">{t("publicPage", "chooseFormatDesc")}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {visibleTemplates.map((template) => {
+                        const preset = FORMAT_PRESETS[template.format as TemplateFormat];
+                        const isActive = selectedTemplateId === template.id;
+                        return (
+                          <button
+                            key={template.id}
+                            onClick={() => setSelectedTemplateId(template.id)}
+                            className={cn(
+                              "flex flex-col items-center rounded-xl border-2 p-2.5 transition-all",
+                              isActive
+                                ? "border-primary bg-primary/5 shadow-sm"
+                                : "border-border/40 bg-white hover:border-border"
+                            )}
+                          >
+                            {template.thumbnail_url ? (
+                              <img src={template.thumbnail_url} alt="" className="mb-1.5 h-12 w-auto rounded object-contain" />
+                            ) : (
+                              <div className="mb-1.5 rounded bg-muted/50" style={{ width: 44, height: Math.min(44 * (template.height / template.width), 56) }} />
+                            )}
+                            <span className="text-[11px] font-semibold">{preset?.label.split(" (")[0] ?? template.name}</span>
+                            <span className="text-[9px] text-muted-foreground">{template.width}x{template.height}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                   <div>
                     <h3 className="mb-1 text-base font-bold tracking-tight">{t("publicPage", "customize")}</h3>
                     <p className="text-[13px] text-muted-foreground">
@@ -469,7 +456,7 @@ export function PublicEventPage({
                 </div>
 
                 {/* Right: preview sticky */}
-                <div className="w-full flex-1 md:sticky md:top-8 md:self-start">
+                <div className="order-1 w-full flex-1 md:order-2 md:sticky md:top-8 md:self-start">
                   <div className="mb-2 flex items-center justify-between text-[12px]">
                     <span className="text-muted-foreground">{t("publicPage", "livePreview")}</span>
                     <span className="font-medium">
